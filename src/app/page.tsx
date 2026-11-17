@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { BOARD_COLS, BOARD_ROWS } from "@/lib/game/constants";
@@ -12,10 +13,16 @@ export default function Home() {
       <PrototypeBanner />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-4 py-12 md:flex-row md:justify-between">
         <section className="max-w-md text-center md:text-left">
-          <p className="text-brand text-sm font-semibold tracking-widest uppercase">LetterLinx</p>
-          <h1 className="mt-2 text-4xl font-extrabold tracking-tight md:text-5xl">
-            Classroom Edition
-          </h1>
+          <Image
+            src="/letterlinx-logo.svg"
+            alt="LetterLinx"
+            width={320}
+            height={133}
+            priority
+            unoptimized
+            className="mx-auto -mb-2 h-auto w-64 md:mx-0 md:-ml-5 md:w-72"
+          />
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Classroom Edition</h1>
           <p className="mt-4 text-lg text-slate-600">
             Enter a vocabulary list, we hide the words on a letter board, and your class races to
             find them — live on the projector.
