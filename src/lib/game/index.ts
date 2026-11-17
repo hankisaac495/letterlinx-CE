@@ -6,3 +6,7 @@ export * from "./profanity";
 export * from "./rng";
 export * from "./types";
 export * from "./validation";
+export * from "./samples";
+export * from "./scoring";
+export * from "./session";
+export * from "./words";

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { BOARD_COLS, BOARD_ROWS } from "@/lib/game/constants";
 
@@ -19,9 +20,15 @@ export default function Home() {
             Enter a vocabulary list, we hide the words on a letter board, and your class races to
             find them — live on the projector.
           </p>
-          <p className="mt-6 text-sm text-slate-500">
-            Coming soon: teacher sign-in and live rounds.
-          </p>
+          <div className="mt-6 flex flex-col items-center gap-3 md:items-start">
+            <Link
+              href="/play"
+              className="rounded-xl bg-blue-700 px-5 py-3 font-extrabold text-white shadow-sm hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
+            >
+              Try a practice round
+            </Link>
+            <p className="text-sm text-slate-500">Coming soon: teacher sign-in and live rounds.</p>
+          </div>
         </section>
 
         <div
