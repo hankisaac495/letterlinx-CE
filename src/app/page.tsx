@@ -21,13 +21,21 @@ export default function Home() {
             find them — live on the projector.
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 md:items-start">
-            <Link
-              href="/play"
-              className="rounded-xl bg-blue-700 px-5 py-3 font-extrabold text-white shadow-sm hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
-            >
-              Try a practice round
-            </Link>
-            <p className="text-sm text-slate-500">Coming soon: teacher sign-in and live rounds.</p>
+            <div className="flex flex-wrap justify-center gap-3 md:justify-start">
+              <Link
+                href="/teacher"
+                className="rounded-xl bg-blue-700 px-5 py-3 font-extrabold text-white shadow-sm hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
+              >
+                Teacher dashboard
+              </Link>
+              <Link
+                href="/play"
+                className="rounded-xl bg-white px-5 py-3 font-bold text-slate-800 shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
+              >
+                Try a practice round
+              </Link>
+            </div>
+            <p className="text-sm text-slate-500">Coming soon: class rosters and live rounds.</p>
           </div>
         </section>
 
