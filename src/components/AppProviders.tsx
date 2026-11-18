@@ -3,6 +3,7 @@
 import { MotionConfig } from "framer-motion";
 import { useEffect } from "react";
 import { sfx } from "@/lib/audio/sfx";
+import { CloudSync } from "./CloudSync";
 import { LocaleSync } from "./LocaleSync";
 
 /**
@@ -22,6 +23,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <MotionConfig reducedMotion="user">
       <LocaleSync />
+      <CloudSync />
       {children}
     </MotionConfig>
   );

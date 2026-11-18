@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
+import { isCloudScope, scopedStorage } from "./scopedStorage";
 import { randomSeed, SAMPLE_WORD_SETS, type WordSetDraft } from "@/lib/game";
 import { newId } from "@/lib/util/id";
 import { createHydrationHook } from "./hydration";
@@ -97,10 +98,13 @@ export const useWordSetStore = create<WordSetState>()(
     {
       name: WORD_SET_STORAGE_KEY,
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: scopedStorage,
       partialize: (s) => ({ wordSets: s.wordSets, seeded: s.seeded }),
       skipHydration: true,
-      onRehydrateStorage: () => (state) => state?.seedSamples(),
+      // Cloud accounts get samples only when their account is empty (see CloudSync).
+      onRehydrateStorage: () => (state) => {
+        if (!isCloudScope()) state?.seedSamples();
+      },
     },
   ),
 );

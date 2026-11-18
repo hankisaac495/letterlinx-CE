@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { btn, card, input } from "@/components/ui/styles";
-import {
-  AccountError,
-  getAccountService,
-  MIN_PASSWORD_LENGTH,
-  type AccountErrorCode,
-} from "@/lib/accounts";
+import { AccountError, MIN_PASSWORD_LENGTH, type AccountErrorCode } from "@/lib/accounts";
+import { getAccountService } from "@/lib/accounts/service";
+import { authRedirect, useCompleteSignIn } from "@/hooks/useCompleteSignIn";
 import { useT, type MessageKey } from "@/lib/i18n";
-import { useSessionStore } from "@/store/sessionStore";
 import { ProviderMark } from "./LoginButtons";
 
 type Mode = "signin" | "signup";
@@ -19,9 +15,13 @@ type Mode = "signin" | "signup";
 /** Email + password accounts for teachers without a rostering system (prototype: this browser only). */
 export function EmailAuth() {
   const t = useT();
-  const router = useRouter();
   const params = useSearchParams();
-  const signIn = useSessionStore((s) => s.signIn);
+  const complete = useCompleteSignIn();
+  const svc = getAccountService();
+  const cloud = svc.kind === "cloud";
+  /** Set after a cloud sign-up: the email the confirmation link was sent to. */
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [resent, setResent] = useState(false);
   const [mode, setMode] = useState<Mode>(params.get("mode") === "signup" ? "signup" : "signin");
   const [form, setForm] = useState({
     email: "",
@@ -41,16 +41,71 @@ export function EmailAuth() {
     setBusy(true);
     setError(null);
     try {
-      const svc = getAccountService();
-      const account =
-        mode === "signup" ? await svc.signUp(form) : await svc.signIn(form.email, form.password);
-      signIn(account.id, "email");
-      router.push("/teacher");
+      if (mode === "signup") {
+        const { account, needsConfirmation } = await svc.signUp(
+          form,
+          authRedirect("/auth/callback"),
+        );
+        if (needsConfirmation) {
+          setSentTo(account.email);
+          setBusy(false);
+          return;
+        }
+        complete(account, cloud);
+      } else {
+        complete(await svc.signIn(form.email, form.password), cloud);
+      }
     } catch (err) {
-      setError(err instanceof AccountError ? err.code : "wrongCredentials");
+      setError(err instanceof AccountError ? err.code : "unknown");
       setBusy(false);
     }
   };
+
+  const resend = async (email: string) => {
+    setError(null);
+    try {
+      await svc.resendConfirmation(email, authRedirect("/auth/callback")!);
+      setResent(true);
+    } catch (err) {
+      setError(err instanceof AccountError ? err.code : "unknown");
+    }
+  };
+
+  if (sentTo) {
+    return (
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
+        <div className={`${card} flex flex-col gap-4 p-6 text-center`} role="status">
+          <p className="text-4xl" aria-hidden="true">
+            ✉️
+          </p>
+          <h1 className="text-xl font-black">{t("email.checkInbox")}</h1>
+          <p className="text-slate-600">{t("email.checkInboxBody", { email: sentTo })}</p>
+          {resent ? (
+            <p className="text-sm font-semibold text-emerald-700">{t("email.resent")}</p>
+          ) : (
+            <button type="button" className={btn.ghost} onClick={() => void resend(sentTo)}>
+              {t("email.resend")}
+            </button>
+          )}
+          {error && (
+            <p className="text-sm font-semibold text-rose-700">
+              {t(`email.error.${error}` as MessageKey, { n: MIN_PASSWORD_LENGTH })}
+            </p>
+          )}
+          <button
+            type="button"
+            className={btn.secondary}
+            onClick={() => {
+              setSentTo(null);
+              setMode("signin");
+            }}
+          >
+            {t("email.backToSignIn")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const field = (
     key: keyof typeof form,
@@ -147,7 +202,17 @@ export function EmailAuth() {
         <button type="submit" className={btn.primary} disabled={busy}>
           {busy ? t("email.working") : mode === "signup" ? t("email.create") : t("email.signIn")}
         </button>
-        <p className="text-xs text-slate-500">{t("email.prototypeNote")}</p>
+        {mode === "signin" && cloud && (
+          <Link
+            href="/auth/forgot"
+            className="-mt-1 self-start text-sm font-semibold text-blue-700 hover:underline"
+          >
+            {t("email.forgot")}
+          </Link>
+        )}
+        <p className="text-xs text-slate-500">
+          {cloud ? t("email.cloudNote") : t("email.prototypeNote")}
+        </p>
       </form>
       <Link
         href="/"

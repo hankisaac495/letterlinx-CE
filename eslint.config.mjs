@@ -9,6 +9,7 @@ const eslintConfig = defineConfig([
   prettier,
   globalIgnores([
     ".next/**",
+    ".next-cloud/**",
     "out/**",
     "build/**",
     "coverage/**",

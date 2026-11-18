@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
+import { scopedStorage } from "./scopedStorage";
 import type { RoundResult } from "@/lib/reports";
 import { createHydrationHook } from "./hydration";
 
@@ -25,7 +26,7 @@ export const useReportStore = create<ReportState>()(
         set((s) => {
           const rest = s.results.filter((r) => r.id !== result.id);
           return {
-            results: [...rest, result]
+            results: [...rest, { ...result, savedAt: Date.now() }]
               .sort((a, b) => a.startedAt - b.startedAt)
               .slice(-MAX_SAVED_ROUNDS),
           };
@@ -48,7 +49,7 @@ export const useReportStore = create<ReportState>()(
     {
       name: "llce:reports",
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: scopedStorage,
       skipHydration: true,
     },
   ),

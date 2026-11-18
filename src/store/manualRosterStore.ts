@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
+import { scopedStorage } from "./scopedStorage";
 import { MAX_CLASS_SIZE, type ManualClass, type ManualStudent } from "@/lib/roster";
 import { newId } from "@/lib/util/id";
 import { createHydrationHook } from "./hydration";
@@ -59,7 +60,7 @@ export const useManualRosterStore = create<ManualRosterState>()(
     {
       name: "llce:manual-rosters",
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: scopedStorage,
       skipHydration: true,
     },
   ),

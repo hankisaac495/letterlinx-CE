@@ -24,7 +24,24 @@ export interface SignUpInput {
 }
 
 export type AccountErrorCode =
-  "emailInvalid" | "emailTaken" | "passwordTooShort" | "nameRequired" | "wrongCredentials";
+  | "emailInvalid"
+  | "emailTaken"
+  | "passwordTooShort"
+  | "nameRequired"
+  | "wrongCredentials"
+  | "emailNotConfirmed"
+  /** Supabase's built-in mailer only sends to project team members. */
+  | "emailNotAuthorized"
+  | "rateLimited"
+  | "resetUnavailable"
+  | "linkExpired"
+  | "unknown";
+
+export interface SignUpResult {
+  account: Account;
+  /** True when the teacher must click a link in their email before signing in. */
+  needsConfirmation: boolean;
+}
 
 export class AccountError extends Error {
   constructor(public code: AccountErrorCode) {
@@ -34,9 +51,18 @@ export class AccountError extends Error {
 }
 
 export interface AccountService {
-  signUp(input: SignUpInput): Promise<Account>;
+  /** "local" = this browser only; "cloud" = hosted accounts (Supabase Auth). */
+  readonly kind: "local" | "cloud";
+  signUp(input: SignUpInput, redirectTo?: string): Promise<SignUpResult>;
   signIn(email: string, password: string): Promise<Account>;
-  get(id: string): Account | null;
+  signOut(): Promise<void>;
+  /** Emails a password-reset link (cloud only). */
+  requestPasswordReset(email: string, redirectTo: string): Promise<void>;
+  /** Sets a new password for the account signed in from a reset link (cloud only). */
+  updatePassword(password: string): Promise<void>;
+  resendConfirmation(email: string, redirectTo: string): Promise<void>;
+  /** The account currently signed in with the service, if any. */
+  current(): Promise<Account | null>;
 }
 
 export const MIN_PASSWORD_LENGTH = 8;
@@ -86,6 +112,7 @@ function safeEqual(a: string, b: string): boolean {
 
 export class LocalAccountService implements AccountService {
   static readonly KEY = "llce:accounts";
+  readonly kind = "local" as const;
 
   constructor(private store: KeyValueStore = globalThis.localStorage) {}
 
@@ -101,13 +128,11 @@ export class LocalAccountService implements AccountService {
     this.store.setItem(LocalAccountService.KEY, JSON.stringify(accounts));
   }
 
-  async signUp(input: SignUpInput): Promise<Account> {
+  async signUp(input: SignUpInput): Promise<SignUpResult> {
+    validateSignUp(input);
     const email = normalizeEmail(input.email);
-    if (!isValidEmail(email)) throw new AccountError("emailInvalid");
-    if (input.password.length < MIN_PASSWORD_LENGTH) throw new AccountError("passwordTooShort");
     const firstName = input.firstName.trim();
     const lastName = input.lastName.trim();
-    if (!firstName || !lastName) throw new AccountError("nameRequired");
     const accounts = this.load();
     if (accounts.some((a) => a.email === email)) throw new AccountError("emailTaken");
     const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -122,7 +147,23 @@ export class LocalAccountService implements AccountService {
       hash: await hashPassword(input.password, salt),
     };
     this.save([...accounts, account]);
-    return strip(account);
+    return { account: strip(account), needsConfirmation: false };
+  }
+
+  async signOut(): Promise<void> {}
+
+  async requestPasswordReset(): Promise<void> {
+    throw new AccountError("resetUnavailable");
+  }
+
+  async updatePassword(): Promise<void> {
+    throw new AccountError("resetUnavailable");
+  }
+
+  async resendConfirmation(): Promise<void> {}
+
+  async current(): Promise<Account | null> {
+    return null;
   }
 
   async signIn(email: string, password: string): Promise<Account> {
@@ -150,8 +191,9 @@ function strip(a: StoredAccount): Account {
   };
 }
 
-let service: AccountService | null = null;
-export function getAccountService(): AccountService {
-  service ??= new LocalAccountService();
-  return service;
+/** Shared sign-up checks so both services reject the same input. */
+export function validateSignUp(input: SignUpInput): void {
+  if (!isValidEmail(input.email)) throw new AccountError("emailInvalid");
+  if (input.password.length < MIN_PASSWORD_LENGTH) throw new AccountError("passwordTooShort");
+  if (!input.firstName.trim() || !input.lastName.trim()) throw new AccountError("nameRequired");
 }

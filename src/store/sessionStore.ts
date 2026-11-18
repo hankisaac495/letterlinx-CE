@@ -20,16 +20,32 @@ export const PROVIDER_LABEL: Record<AuthProvider, string> = {
 export const isRosteringSystem = (p: AuthProvider): p is Exclude<AuthProvider, "email"> =>
   p !== "email";
 
+export interface TeacherProfile {
+  firstName: string;
+  lastName: string;
+  title: string;
+  email: string;
+}
+
 export interface TeacherSession {
   teacherId: string;
   provider: AuthProvider;
   signedInAt: number;
   lastSyncedAt: number;
+  /** Name and email for email accounts (so the header can show them without a lookup). */
+  profile?: TeacherProfile;
+  /** True when the account and its data live in Supabase. */
+  cloud?: boolean;
 }
 
 interface SessionState {
   session: TeacherSession | null;
-  signIn(teacherId: string, provider: AuthProvider): void;
+  signIn(
+    teacherId: string,
+    provider: AuthProvider,
+    profile?: TeacherProfile,
+    cloud?: boolean,
+  ): void;
   signOut(): void;
   markSynced(at: number): void;
 }
@@ -39,9 +55,11 @@ export const useSessionStore = create<SessionState>()(
   persist(
     (set) => ({
       session: null,
-      signIn: (teacherId, provider) => {
+      signIn: (teacherId, provider, profile, cloud) => {
         const now = Date.now();
-        set({ session: { teacherId, provider, signedInAt: now, lastSyncedAt: now } });
+        set({
+          session: { teacherId, provider, signedInAt: now, lastSyncedAt: now, profile, cloud },
+        });
       },
       signOut: () => set({ session: null }),
       markSynced: (at) =>

@@ -1,3 +1,4 @@
+import { getSupabase, supabaseConfigured } from "@/lib/supabase/client";
 import { BroadcastChannelSyncProvider, LocalStorageSyncProvider } from "./broadcastChannel";
 import { SupabaseSyncProvider, type RealtimeClientLike } from "./supabase";
 import type { JoinOptions, SyncMessage, SyncProvider, SyncTransport, Unsubscribe } from "./types";
@@ -5,31 +6,21 @@ import type { JoinOptions, SyncMessage, SyncProvider, SyncTransport, Unsubscribe
 export * from "./types";
 export { BroadcastChannelSyncProvider, LocalStorageSyncProvider, SupabaseSyncProvider };
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 /** Set NEXT_PUBLIC_SYNC_MODE=local to force same-browser sync even when Supabase is configured. */
 const FORCE_LOCAL = process.env.NEXT_PUBLIC_SYNC_MODE === "local";
 
 /** Whether cross-device sync is configured for this build. */
-export const networkSyncConfigured = !!(SUPABASE_URL && SUPABASE_KEY) && !FORCE_LOCAL;
+export const networkSyncConfigured = supabaseConfigured && !FORCE_LOCAL;
 
 function localProvider(): SyncProvider {
   if (typeof BroadcastChannel !== "undefined") return new BroadcastChannelSyncProvider();
   return new LocalStorageSyncProvider();
 }
 
-let clientPromise: Promise<RealtimeClientLike> | null = null;
 /** Once Realtime fails in this tab, later joins go straight to same-browser sync. */
 let networkFailed = false;
 function supabaseClient(): Promise<RealtimeClientLike> {
-  // Loaded on demand so local-only builds don't ship the Supabase client in the first bundle.
-  clientPromise ??= import("@supabase/supabase-js").then(({ createClient }) =>
-    createClient(SUPABASE_URL!, SUPABASE_KEY!, {
-      auth: { persistSession: false, autoRefreshToken: false },
-      realtime: { params: { eventsPerSecond: 20 } },
-    }),
-  ) as Promise<RealtimeClientLike>;
-  return clientPromise;
+  return getSupabase() as unknown as Promise<RealtimeClientLike>;
 }
 
 /**

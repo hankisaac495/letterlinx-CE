@@ -20,7 +20,7 @@ const input = {
 describe("LocalAccountService", () => {
   it("signs up and signs in with a normalised email", async () => {
     const svc = new LocalAccountService(memoryStore());
-    const account = await svc.signUp(input);
+    const { account } = await svc.signUp(input);
     expect(account).toMatchObject({ email: "pat.lee@school.org", firstName: "Pat", title: "Mx." });
     expect(await svc.signIn("PAT.LEE@school.org", "correct horse")).toEqual(account);
     expect(svc.get(account.id)).toEqual(account);

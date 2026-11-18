@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { teacherDisplayName } from "@/lib/roster";
 import { useTeacher } from "@/hooks/useTeacher";
+import { getAccountService } from "@/lib/accounts/service";
 import { useT } from "@/lib/i18n";
+import { useCloudStatus } from "@/store/cloudStatusStore";
 import { PROVIDER_LABEL, useSessionStore } from "@/store/sessionStore";
 
 const navLink =
@@ -14,6 +16,7 @@ const navLink =
 export function TeacherHeader() {
   const t = useT();
   const router = useRouter();
+  const cloudStatus = useCloudStatus((s) => s.status);
   const { teacher, session } = useTeacher();
   const signOut = useSessionStore((s) => s.signOut);
   return (
@@ -57,10 +60,29 @@ export function TeacherHeader() {
                   {t("nav.via", { provider: PROVIDER_LABEL[session.provider] })}
                 </span>
               </span>
+              {session.cloud && cloudStatus !== "idle" && (
+                <span
+                  data-testid="cloud-status"
+                  className={`text-xs font-semibold ${cloudStatus === "error" ? "text-amber-700" : "text-emerald-700"}`}
+                  role="status"
+                >
+                  {cloudStatus === "saved"
+                    ? `✓ ${t("cloud.saved")}`
+                    : cloudStatus === "error"
+                      ? t("cloud.error")
+                      : cloudStatus === "loading"
+                        ? t("cloud.loading")
+                        : t("cloud.saving")}
+                </span>
+              )}
               <button
                 type="button"
                 className={`${navLink} text-slate-500`}
-                onClick={() => {
+                onClick={async () => {
+                  if (session.cloud)
+                    await getAccountService()
+                      .signOut()
+                      .catch(() => undefined);
                   signOut();
                   router.push("/");
                 }}

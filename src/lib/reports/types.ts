@@ -23,6 +23,8 @@ export interface RoundResult {
   /** Round time actually played (excludes pauses). */
   playedMs: number;
   players: ResultPlayer[];
+  /** When this copy was saved (newer copies win when syncing between devices). */
+  savedAt?: number;
   /** Generated demo history rather than a round that was actually played. */
   sample?: boolean;
 }

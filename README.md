@@ -91,6 +91,28 @@ First-time Playwright setup on a new machine: `npx playwright install chromium`.
 3. Set the production branch to `main`. Every push to `main` deploys to production and every
    pull request gets a preview URL.
 
+## Teacher accounts and cloud storage (Supabase)
+
+When Supabase is configured, **email accounts use Supabase Auth** (email confirmation, password reset)
+and each teacher's **classes, word sets and reports are saved to their account** (tables in
+`supabase/schema.sql`, protected by row-level security so teachers only see their own rows). The browser
+keeps a per-account copy and saves changes as they happen; signing in on another computer brings everything
+back. Clever / Google Classroom / ClassLink demo sign-ins stay local. Without Supabase, email accounts fall
+back to this-browser-only accounts.
+
+One-time Supabase setup:
+
+1. **SQL Editor → New query**: paste `supabase/schema.sql`, click **Run**.
+2. **Authentication → Sign In / Providers → Email**: enabled, with **Confirm email** on.
+3. **Authentication → URL Configuration**: Site URL `https://www.letterlinxce.com`; Redirect URLs
+   `https://www.letterlinxce.com/**`, `https://letterlinxce.com/**`, `http://localhost:3000/**`
+   (add your Vercel preview pattern too, e.g. `https://*-<team>.vercel.app/**`).
+4. Supabase's built-in mailer is for testing (it only emails the project team, a few per hour). Before
+   inviting teachers, set a custom SMTP sender (e.g. Resend) under **Authentication → Emails → SMTP Settings**.
+
+Tests: `npm run test:e2e:cloud` builds with placeholder Supabase settings and runs the account flows against an
+in-browser fake of Supabase Auth and REST (no real project needed).
+
 ## Cross-device live rounds (Supabase Realtime)
 
 Without configuration, live rounds sync between tabs of the **same browser** (BroadcastChannel).

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { getAccountService } from "@/lib/accounts";
+import { getLocalAccountService } from "@/lib/accounts/service";
 import {
   demoRosterFor,
   ManualRosterProvider,
@@ -25,14 +25,14 @@ export function resolveTeacher(session: TeacherSession): Teacher | null {
         .find((t) => t.id === session.teacherId) ?? null
     );
   }
-  const account = getAccountService().get(session.teacherId);
-  return account
+  const profile = session.profile ?? getLocalAccountService().get(session.teacherId);
+  return profile
     ? {
-        id: account.id,
+        id: session.teacherId,
         district: "",
         school: "",
-        name: { first: account.firstName, last: account.lastName },
-        title: account.title,
+        name: { first: profile.firstName, last: profile.lastName },
+        title: profile.title,
       }
     : null;
 }

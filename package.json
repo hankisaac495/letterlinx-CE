@@ -13,7 +13,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "test:e2e:cloud": "NEXT_PUBLIC_SUPABASE_URL=https://fake-project.supabase.co NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_test NEXT_DIST_DIR=.next-cloud next build && playwright test -c playwright.cloud.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/nunito": "^5.3.0",

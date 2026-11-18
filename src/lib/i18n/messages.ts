@@ -739,6 +739,73 @@ export const MESSAGES = {
   ],
   "badge.listQuickcard": ["Demo QuickCards", "QuickCards de prueba"],
   "badge.acceptedQuickcard": ["QuickCard accepted", "QuickCard aceptada"],
+  "email.checkInbox": ["Check your email", "Revisa tu correo"],
+  "email.checkInboxBody": [
+    "We sent a confirmation link to {email}. Click it to finish creating your account.",
+    "Enviamos un enlace de confirmación a {email}. Haz clic en él para terminar de crear tu cuenta.",
+  ],
+  "email.resend": ["Resend the email", "Reenviar el correo"],
+  "email.resent": ["Sent again — check your inbox.", "Enviado de nuevo: revisa tu bandeja."],
+  "email.backToSignIn": ["Back to sign in", "Volver a iniciar sesión"],
+  "email.forgot": ["Forgot your password?", "¿Olvidaste tu contraseña?"],
+  "email.cloudNote": [
+    "Your classes, word sets and reports are saved to your account.",
+    "Tus clases, conjuntos de palabras e informes se guardan en tu cuenta.",
+  ],
+  "email.error.emailNotConfirmed": [
+    "Confirm your email first — click the link we sent you.",
+    "Primero confirma tu correo: haz clic en el enlace que te enviamos.",
+  ],
+  "email.error.emailNotAuthorized": [
+    "This test setup can only send email to addresses on the Supabase project team. Add a custom email sender in Supabase to invite other teachers.",
+    "Esta configuración de prueba solo envía correos a miembros del equipo del proyecto de Supabase. Agrega un servicio de correo propio en Supabase para invitar a otros docentes.",
+  ],
+  "email.error.rateLimited": [
+    "Too many attempts. Wait a few minutes and try again.",
+    "Demasiados intentos. Espera unos minutos e inténtalo otra vez.",
+  ],
+  "email.error.resetUnavailable": [
+    "Password reset isn’t available in this demo setup.",
+    "El restablecimiento de contraseña no está disponible en esta configuración de demostración.",
+  ],
+  "email.error.linkExpired": [
+    "This link has expired or was already used.",
+    "Este enlace caducó o ya se usó.",
+  ],
+  "email.error.unknown": [
+    "Something went wrong. Check your connection and try again.",
+    "Algo salió mal. Revisa tu conexión e inténtalo otra vez.",
+  ],
+  "email.callbackFailed": ["We couldn’t confirm that link", "No pudimos confirmar ese enlace"],
+  "email.callbackFailedBody": [
+    "The link may have expired or already been used. Try signing in — if your email is confirmed, it will work.",
+    "Puede que el enlace haya caducado o ya se haya usado. Intenta iniciar sesión: si tu correo está confirmado, funcionará.",
+  ],
+  "email.confirming": ["Confirming your email…", "Confirmando tu correo…"],
+  "email.confirmingBody": [
+    "One moment while we sign you in.",
+    "Un momento mientras iniciamos tu sesión.",
+  ],
+  "email.forgotTitle": ["Reset your password", "Restablece tu contraseña"],
+  "email.forgotBody": [
+    "Enter your account email and we’ll send you a link to choose a new password.",
+    "Escribe el correo de tu cuenta y te enviaremos un enlace para elegir una nueva contraseña.",
+  ],
+  "email.sendReset": ["Send reset link", "Enviar enlace"],
+  "email.resetSent": [
+    "If an account exists for {email}, a reset link is on its way.",
+    "Si existe una cuenta para {email}, el enlace ya va en camino.",
+  ],
+  "email.newPasswordTitle": ["Choose a new password", "Elige una nueva contraseña"],
+  "email.newPassword": ["New password", "Nueva contraseña"],
+  "email.savePassword": ["Save password", "Guardar contraseña"],
+  "cloud.saved": ["Saved to your account", "Guardado en tu cuenta"],
+  "cloud.saving": ["Saving…", "Guardando…"],
+  "cloud.loading": ["Loading your account…", "Cargando tu cuenta…"],
+  "cloud.error": [
+    "Can’t reach your account — changes will save when you’re back online",
+    "No se puede conectar con tu cuenta: los cambios se guardarán al volver a estar en línea",
+  ],
   // @append
 } as const satisfies Record<string, readonly [en: string, es: string]>;
 
