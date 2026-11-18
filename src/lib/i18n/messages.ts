@@ -620,6 +620,10 @@ export const MESSAGES = {
     "Board preview: {rows} rows of {cols} letters",
     "Vista previa: {rows} filas de {cols} letras",
   ],
+  "home.heroAlt": [
+    "LetterLinx on a classroom display showing the end-of-round results, with a student playing on a phone in front.",
+    "LetterLinx en una pantalla del aula con los resultados de la ronda, y un estudiante jugando en un teléfono delante.",
+  ],
   // @append
 } as const satisfies Record<string, readonly [en: string, es: string]>;
 
