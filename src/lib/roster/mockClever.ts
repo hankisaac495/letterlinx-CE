@@ -1,6 +1,8 @@
 import { buildDemoDistrict, type DemoDistrict } from "./seed";
 import {
   RosterNotFoundError,
+  type DemoBadge,
+  type DemoRoster,
   type RosterProvider,
   type Section,
   type Student,
@@ -17,7 +19,7 @@ export interface MockCleverOptions {
  * Simulated Clever roster API backed by the seeded demo district.
  * Swap for a real Clever client by implementing RosterProvider.
  */
-export class MockCleverProvider implements RosterProvider {
+export class MockCleverProvider implements RosterProvider, DemoRoster {
   readonly data: DemoDistrict;
   private latencyMs: number;
 
@@ -67,7 +69,19 @@ export class MockCleverProvider implements RosterProvider {
   }
 
   /** Demo-only: every section with its students, for the mock badge scanner. */
-  listDemoBadges(): { section: Section; teacher: Teacher; students: Student[] }[] {
+  get schoolName() {
+    return this.data.school.name;
+  }
+
+  get districtName() {
+    return this.data.district.name;
+  }
+
+  countSections(teacherId: string): number {
+    return this.data.sections.filter((s) => s.teacher === teacherId).length;
+  }
+
+  listDemoBadges(): DemoBadge[] {
     const byId = new Map(this.data.students.map((s) => [s.id, s]));
     return this.data.sections.map((section) => ({
       section: structuredClone(section),

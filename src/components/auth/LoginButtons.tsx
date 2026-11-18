@@ -1,41 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useTeacher } from "@/hooks/useTeacher";
 import { useT } from "@/lib/i18n";
-import { getRosterProvider, teacherDisplayName } from "@/lib/roster";
-import { useSessionReady, useSessionStore } from "@/store/sessionStore";
+import { teacherDisplayName } from "@/lib/roster";
 
 const loginBtn =
   "inline-flex items-center justify-center gap-3 rounded-xl px-5 py-3 font-extrabold shadow-sm transition active:translate-y-px focus-visible:outline-none focus-visible:ring-4";
 
 /** Generic marks (not the real brands' logos) for the simulated providers. */
-export function ProviderMark({ provider }: { provider: "clever" | "google" }) {
+export function ProviderMark({
+  provider,
+}: {
+  provider: "clever" | "google" | "classlink" | "email";
+}) {
+  const styles = {
+    clever: ["bg-white/20 text-white", "C"],
+    google: ["bg-emerald-600 text-white", "G"],
+    classlink: ["bg-teal-700 text-white", "CL"],
+    email: ["bg-slate-700 text-white", "@"],
+  } as const;
+  const [cls, label] = styles[provider];
   return (
     <span
       aria-hidden="true"
-      className={`flex size-7 items-center justify-center rounded-lg text-sm font-black ${
-        provider === "clever" ? "bg-white/20 text-white" : "bg-emerald-600 text-white"
-      }`}
+      className={`flex size-7 items-center justify-center rounded-lg text-xs font-black ${cls}`}
     >
-      {provider === "clever" ? "C" : "G"}
+      {label}
     </span>
   );
 }
 
 export function LoginButtons() {
   const t = useT();
-  const ready = useSessionReady();
-  const session = useSessionStore((s) => s.session);
-  const teacher = useMemo(
-    () =>
-      session
-        ? getRosterProvider()
-            .listDemoTeachers()
-            .find((t) => t.id === session.teacherId)
-        : undefined,
-    [session],
-  );
+  const { ready, session, teacher } = useTeacher();
 
   if (ready && session && teacher) {
     return (
@@ -69,6 +67,26 @@ export function LoginButtons() {
         <ProviderMark provider="google" />
         {t("auth.loginGoogle")}
       </Link>
+      <Link
+        href="/auth/classlink"
+        className={`${loginBtn} bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50 focus-visible:ring-blue-200`}
+      >
+        <ProviderMark provider="classlink" />
+        {t("auth.loginClassLink")}
+      </Link>
+      <p className="w-full text-sm text-slate-600 sm:basis-full">
+        {t("auth.noRostering")}{" "}
+        <Link href="/auth/email" className="font-semibold text-blue-700 hover:underline">
+          {t("auth.emailSignIn")}
+        </Link>{" "}
+        {t("auth.or")}{" "}
+        <Link
+          href="/auth/email?mode=signup"
+          className="font-semibold text-blue-700 hover:underline"
+        >
+          {t("auth.emailCreate")}
+        </Link>
+      </p>
     </div>
   );
 }

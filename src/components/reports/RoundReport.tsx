@@ -15,7 +15,6 @@ import {
   wordRows,
   wordsCsv,
 } from "@/lib/reports";
-import { getRosterProvider } from "@/lib/roster";
 import { downloadText } from "@/lib/util/download";
 import { useReportsReady, useReportStore } from "@/store/reportStore";
 import { useLocale, useT, type MessageKey } from "@/lib/i18n";
@@ -78,8 +77,8 @@ export function RoundReport() {
   const students = studentRows(result);
   const words = wordRows(result);
   const review = words.filter((w) => w.review);
-  const section = result.sectionId
-    ? getRosterProvider().data.sections.find((s) => s.id === result.sectionId)
+  const section = result.className
+    ? { name: result.className, period: result.classPeriod ?? "" }
     : undefined;
   const hints = result.settings.display.mode === "hidden" && result.settings.display.allowHints;
   const { display, duration, teamMode } = result.settings;

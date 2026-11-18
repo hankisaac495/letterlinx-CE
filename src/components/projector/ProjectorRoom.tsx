@@ -7,7 +7,6 @@ import { useHostSync } from "@/hooks/useHostSync";
 import { useProjectorSounds } from "@/hooks/useProjectorSounds";
 import { useT } from "@/lib/i18n";
 import { createRng, randomSeed, shuffle } from "@/lib/game";
-import { getRosterProvider, studentDisplayName } from "@/lib/roster";
 import { useHostReady, useHostStore } from "@/store/hostStore";
 import { useReportsReady } from "@/store/reportStore";
 import { ControlBar } from "./ControlBar";
@@ -35,16 +34,9 @@ export function ProjectorRoom() {
     const current = useHostStore.getState().room;
     if (!current) return;
     // With a class, simulated students come from its roster; otherwise invented names.
-    const sectionId = current.round.sectionId;
-    const roster = getRosterProvider().data;
-    const section = sectionId ? roster.sections.find((sec) => sec.id === sectionId) : undefined;
-    const candidates = section
-      ? shuffle(
-          createRng(randomSeed()),
-          roster.students
-            .filter((s) => section.students.includes(s.id))
-            .map((s) => ({ id: s.id, name: studentDisplayName(s) })),
-        )
+    const classStudents = current.round.classInfo?.students;
+    const candidates = classStudents?.length
+      ? shuffle(createRng(randomSeed()), [...classStudents])
       : undefined;
     const count = candidates ? Math.max(1, Math.round(candidates.length * 0.8)) : BOT_BATCH;
     if (current.phase !== "lobby") {

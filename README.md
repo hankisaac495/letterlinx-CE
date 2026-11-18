@@ -46,6 +46,18 @@ localStorage fallback). The projector tab runs the round, so keep it open.
 - Animations respect `prefers-reduced-motion`; found words use a colour-blind-safe palette plus numbered
   badges; projector letters are at least 6% of screen height.
 
+### Sign-in options
+
+- **Clever**, **Google Classroom** and **ClassLink** (all simulated): consent screen, then a demo teacher.
+  ClassLink's demo data is stored in OneRoster 1.1 shape (`orgs`, `users`, `classes`, `enrollments`) and
+  converted by adapters in `src/lib/roster/mockClassLink.ts`, ready to point at a real Roster Server.
+- Students can join with a room code and their name, a **Clever badge** or a **ClassLink QuickCard** (simulated).
+- **Email accounts** for schools without a rostering system: teachers create an account, then add classes and
+  paste student names (first name + last initial only). Prototype: accounts and classes are saved in the
+  teacher's browser, with passwords stored only as salted PBKDF2 hashes. `AccountService` and
+  `ManualRosterProvider` are the seams for moving this to a hosted service (e.g. Supabase Auth + database).
+- A round carries its class list with it, so student devices never need roster access.
+
 ### Rostering
 
 All roster access goes through `RosterProvider` (`src/lib/roster`). `MockCleverProvider` serves a seeded,

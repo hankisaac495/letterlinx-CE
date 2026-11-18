@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { btn, card } from "@/components/ui/styles";
 import { useT } from "@/lib/i18n";
-import { getRosterProvider, teacherDisplayName } from "@/lib/roster";
+import { demoRosterFor, teacherDisplayName } from "@/lib/roster";
 import { PROVIDER_LABEL, useSessionStore, type AuthProvider } from "@/store/sessionStore";
 import { ProviderMark } from "./LoginButtons";
 
@@ -18,11 +18,12 @@ const SCOPES = ["auth.scope.name", "auth.scope.sections", "auth.scope.students"]
 export function MockAuthorize() {
   const t = useT();
   const { provider: raw } = useParams<{ provider: string }>();
-  const provider: AuthProvider = raw === "google" ? "google" : "clever";
+  const provider: Exclude<AuthProvider, "email"> =
+    raw === "google" ? "google" : raw === "classlink" ? "classlink" : "clever";
   const router = useRouter();
   const signIn = useSessionStore((s) => s.signIn);
   const [step, setStep] = useState<"consent" | "account" | "signingIn">("consent");
-  const roster = getRosterProvider();
+  const roster = demoRosterFor(provider);
   const teachers = roster.listDemoTeachers();
   const label = PROVIDER_LABEL[provider];
 
@@ -38,7 +39,7 @@ export function MockAuthorize() {
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
       <div className={`${card} overflow-hidden`}>
         <div
-          className={`flex items-center gap-3 px-6 py-4 ${provider === "clever" ? "bg-[#1464ff] text-white" : "bg-slate-50 text-slate-900"}`}
+          className={`flex items-center gap-3 px-6 py-4 ${provider === "clever" ? "bg-[#1464ff] text-white" : provider === "classlink" ? "bg-teal-50 text-slate-900" : "bg-slate-50 text-slate-900"}`}
         >
           <ProviderMark provider={provider} />
           <p className="font-black">{label}</p>
@@ -96,12 +97,12 @@ export function MockAuthorize() {
               <div>
                 <h1 className="text-xl font-black">{t("auth.chooseTeacher")}</h1>
                 <p className="mt-1 text-sm text-slate-500">
-                  {roster.data.school.name} · {roster.data.district.name}
+                  {roster.schoolName} · {roster.districtName}
                 </p>
               </div>
               <ul className="flex flex-col gap-2">
                 {teachers.map((teacher) => {
-                  const count = roster.data.sections.filter((s) => s.teacher === teacher.id).length;
+                  const count = roster.countSections(teacher.id);
                   return (
                     <li key={teacher.id}>
                       <button

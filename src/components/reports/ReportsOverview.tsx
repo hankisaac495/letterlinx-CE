@@ -7,7 +7,7 @@ import { useNow } from "@/hooks/useNow";
 import { useSections } from "@/hooks/useRoster";
 import { useTeacher } from "@/hooks/useTeacher";
 import { roundSummary, sampleHistory, sectionHistory } from "@/lib/reports";
-import { getRosterProvider, studentDisplayName } from "@/lib/roster";
+import { studentDisplayName } from "@/lib/roster";
 import { useReportsReady, useReportStore } from "@/store/reportStore";
 import { useWordSetStore, useWordSetsReady } from "@/store/wordSetStore";
 import { formatDate, MODE_LABEL, pct } from "./format";
@@ -21,14 +21,14 @@ export function ReportsOverview() {
   const locale = useLocale();
   const router = useRouter();
   const params = useSearchParams();
-  const { teacher } = useTeacher();
+  const { teacher, roster } = useTeacher();
   const reportsReady = useReportsReady();
   const setsReady = useWordSetsReady();
   const results = useReportStore((s) => s.results);
   const addMany = useReportStore((s) => s.addMany);
   const clearSamples = useReportStore((s) => s.clearSamples);
   const wordSets = useWordSetStore((s) => s.wordSets);
-  const { data: sections } = useSections(teacher?.id ?? null);
+  const { data: sections } = useSections();
   const now = useNow(false);
 
   if (!reportsReady || !setsReady || !sections || !teacher)
@@ -47,12 +47,13 @@ export function ReportsOverview() {
   const rounds = sectionHistory(mine, sectionId);
   const hasSamples = rounds.some((r) => r.sample);
 
-  const addSamples = () => {
-    if (!selected) return;
-    const roster = getRosterProvider().data;
-    const students = roster.students
-      .filter((s) => selected.students.includes(s.id))
-      .map((s) => ({ id: s.id, name: studentDisplayName(s) }));
+  const addSamples = async () => {
+    if (!selected || !roster) return;
+    const students = (await roster.getStudents(selected.id)).map((s) => ({
+      id: s.id,
+      name: studentDisplayName(s),
+    }));
+    if (students.length === 0) return;
     addMany(
       sampleHistory({
         sectionId: selected.id,
@@ -62,7 +63,7 @@ export function ReportsOverview() {
         rounds: 6,
         now,
         seed: selected.id.charCodeAt(0) * 31 + selected.id.charCodeAt(1),
-      }),
+      }).map((r) => ({ ...r, className: selected.name, classPeriod: selected.period })),
     );
   };
 
@@ -115,7 +116,7 @@ export function ReportsOverview() {
               <button
                 type="button"
                 className={btn.secondary}
-                onClick={addSamples}
+                onClick={() => void addSamples()}
                 disabled={!wordSets.length}
               >
                 {t("rep.addSamples")}

@@ -6,7 +6,7 @@ import { btn, card } from "@/components/ui/styles";
 import { useNow } from "@/hooks/useNow";
 import { useSections, useStudents } from "@/hooks/useRoster";
 import { useTeacher } from "@/hooks/useTeacher";
-import { getRosterProvider, studentDisplayName, type Section } from "@/lib/roster";
+import { studentDisplayName, type Section } from "@/lib/roster";
 import { useT, type Translate } from "@/lib/i18n";
 import { PROVIDER_LABEL, useSessionStore } from "@/store/sessionStore";
 
@@ -35,7 +35,7 @@ function Roster({ section }: { section: Section }) {
   );
 }
 
-function SectionCard({ section }: { section: Section }) {
+function SectionCard({ section, editable }: { section: Section; editable: boolean }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const rosterId = `roster-${section.id}`;
@@ -73,6 +73,11 @@ function SectionCard({ section }: { section: Section }) {
         >
           {open ? t("classes.hideRoster") : t("classes.viewRoster")}
         </button>
+        {editable && (
+          <Link href={`/teacher/classes/${section.id}`} className={btn.ghost}>
+            {t("classes.editClass")}
+          </Link>
+        )}
         <Link href={`/teacher/reports?section=${section.id}`} className={btn.ghost}>
           {t("classes.reports")}
         </Link>
@@ -83,16 +88,17 @@ function SectionCard({ section }: { section: Section }) {
 
 export function ClassesSection() {
   const t = useT();
-  const { teacher, session } = useTeacher();
+  const { session, roster } = useTeacher();
+  const manual = session?.provider === "email";
   const markSynced = useSessionStore((s) => s.markSynced);
   const [version, setVersion] = useState(0);
   const [syncing, setSyncing] = useState(false);
-  const { data: sections, loading } = useSections(teacher?.id ?? null, version);
+  const { data: sections, loading } = useSections(version);
   const now = useNow(true, 15_000);
 
   const sync = async () => {
     setSyncing(true);
-    const { syncedAt } = await getRosterProvider().sync();
+    const { syncedAt } = (await roster?.sync?.()) ?? { syncedAt: Date.now() };
     markSynced(syncedAt);
     setVersion((v) => v + 1);
     setSyncing(false);
@@ -105,7 +111,8 @@ export function ClassesSection() {
           <h2 id="classes-heading" className="text-xl font-black">
             {t("classes.title")}
           </h2>
-          {session && (
+          {session && manual && <p className="text-sm text-slate-500">{t("classes.manual")}</p>}
+          {session && !manual && (
             <p className="text-sm text-slate-500" aria-live="polite" data-testid="last-synced">
               {syncing
                 ? t("classes.syncing", { provider: PROVIDER_LABEL[session.provider] })
@@ -116,30 +123,41 @@ export function ClassesSection() {
             </p>
           )}
         </div>
-        <button type="button" className={btn.secondary} onClick={sync} disabled={syncing}>
-          <svg
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-            className={`size-4 ${syncing ? "animate-spin motion-reduce:animate-none" : ""}`}
-          >
-            <path
-              d="M16 10a6 6 0 01-10.5 4M4 10a6 6 0 0110.5-4M14.5 2.5V6H11M5.5 17.5V14H9"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          {syncing ? t("classes.syncingShort") : t("classes.sync")}
-        </button>
+        {manual ? (
+          <Link href="/teacher/classes/new" className={btn.primary}>
+            {t("classes.addClass")}
+          </Link>
+        ) : (
+          <button type="button" className={btn.secondary} onClick={sync} disabled={syncing}>
+            <svg
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+              className={`size-4 ${syncing ? "animate-spin motion-reduce:animate-none" : ""}`}
+            >
+              <path
+                d="M16 10a6 6 0 01-10.5 4M4 10a6 6 0 0110.5-4M14.5 2.5V6H11M5.5 17.5V14H9"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {syncing ? t("classes.syncingShort") : t("classes.sync")}
+          </button>
+        )}
       </div>
       {loading || !sections ? (
         <p className="mt-3 text-slate-500">{t("classes.loading")}</p>
+      ) : sections.length === 0 ? (
+        <div className={`${card} mt-3 p-8 text-center`}>
+          <p className="font-bold">{t("classes.empty")}</p>
+          <p className="mt-1 text-slate-500">{t("classes.emptyHelp")}</p>
+        </div>
       ) : (
         <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sections.map((s) => (
-            <SectionCard key={s.id} section={s} />
+            <SectionCard key={s.id} section={s} editable={manual} />
           ))}
         </ul>
       )}

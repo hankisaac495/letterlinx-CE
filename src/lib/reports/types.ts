@@ -13,6 +13,9 @@ export interface RoundResult {
   words: TargetWord[];
   settings: RoundSettings;
   sectionId: string | null;
+  /** Class name and period at the time of the round (rosters can change later). */
+  className?: string;
+  classPeriod?: string;
   teacherId: string | null;
   wordSetId: string | null;
   startedAt: number;

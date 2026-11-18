@@ -2,18 +2,13 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { btn, card, select } from "@/components/ui/styles";
 import { saveIdentity } from "@/hooks/useStudentRoom";
 import { useT } from "@/lib/i18n";
 import { watchSectionRoom } from "@/lib/live";
-import {
-  getRosterProvider,
-  studentDisplayName,
-  teacherDisplayName,
-  type Student,
-} from "@/lib/roster";
+import { demoRosterFor, studentDisplayName, teacherDisplayName, type Student } from "@/lib/roster";
 
 /**
  * Simulated Clever badge sign-in: "scan" a demo badge, then wait for the class's
@@ -23,7 +18,12 @@ export function BadgeLogin() {
   const t = useT();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
-  const badges = useMemo(() => getRosterProvider().listDemoBadges(), []);
+  // Clever badges or ClassLink QuickCards (both simulated).
+  const quickcard = useSearchParams().get("provider") === "classlink";
+  const badges = useMemo(
+    () => demoRosterFor(quickcard ? "classlink" : "clever").listDemoBadges(),
+    [quickcard],
+  );
   const [sectionId, setSectionId] = useState(badges[0]?.section.id ?? "");
   const [student, setStudent] = useState<Student | null>(null);
   const [waiting, setWaiting] = useState(false);
@@ -51,7 +51,7 @@ export function BadgeLogin() {
         role="status"
       >
         <p className="text-sm font-semibold tracking-widest text-slate-500 uppercase">
-          {t("badge.accepted")}
+          {quickcard ? t("badge.acceptedQuickcard") : t("badge.accepted")}
         </p>
         <h1 className="text-3xl font-black" data-testid="badge-name">
           {t("badge.hi", { name: studentDisplayName(student) })}
@@ -74,7 +74,7 @@ export function BadgeLogin() {
   return (
     <div className={`${card} mx-auto mt-8 flex w-full max-w-lg flex-col gap-5 p-6`}>
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-black">{t("join.badge")}</h1>
+        <h1 className="text-2xl font-black">{quickcard ? t("join.quickcard") : t("join.badge")}</h1>
         <span className="rounded-full bg-amber-300 px-2 py-0.5 text-xs font-extrabold text-amber-950">
           {t("common.simulated")}
         </span>
@@ -92,9 +92,13 @@ export function BadgeLogin() {
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
-        <p className="relative px-10 font-semibold text-white/80">{t("badge.hold")}</p>
+        <p className="relative px-10 font-semibold text-white/80">
+          {quickcard ? t("badge.holdQuickcard") : t("badge.hold")}
+        </p>
       </div>
-      <p className="text-sm text-slate-500">{t("badge.noCamera")}</p>
+      <p className="text-sm text-slate-500">
+        {quickcard ? t("badge.noCameraQuickcard") : t("badge.noCamera")}
+      </p>
       <label className="flex flex-col gap-1">
         <span className="text-sm font-bold">{t("launch.class")}</span>
         <select
@@ -116,7 +120,7 @@ export function BadgeLogin() {
       </label>
       <ul
         className="grid max-h-72 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3"
-        aria-label={t("badge.list")}
+        aria-label={quickcard ? t("badge.listQuickcard") : t("badge.list")}
       >
         {group?.students.map((s) => (
           <li key={s.id}>

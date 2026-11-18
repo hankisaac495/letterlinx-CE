@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getRosterProvider, type Section, type Student } from "@/lib/roster";
+import type { Section, Student } from "@/lib/roster";
+import { useManualRostersReady, useManualRosterStore } from "@/store/manualRosterStore";
+import { useTeacher } from "./useTeacher";
 
 interface AsyncState<T> {
   data: T | null;
@@ -37,13 +39,29 @@ function useAsync<T>(key: string | null, load: () => Promise<T>): AsyncState<T> 
   };
 }
 
-/** A teacher's sections. Change `version` to refetch (e.g. after Sync roster). */
-export function useSections(teacherId: string | null, version = 0) {
-  return useAsync<Section[]>(teacherId ? `${teacherId}:${version}` : null, () =>
-    getRosterProvider().getSections(teacherId!),
+/**
+ * The signed-in teacher's sections, from their rostering system or typed-in classes.
+ * Change `version` to refetch (e.g. after Sync roster).
+ */
+export function useSections(version = 0) {
+  const { teacher, roster } = useTeacher();
+  const manualReady = useManualRostersReady();
+  // Typed-in classes refresh whenever the class store changes.
+  const manualClasses = useManualRosterStore((s) => s.classes);
+  const manualKey = manualReady
+    ? manualClasses.map((c) => `${c.id}@${c.updatedAt}`).join(",")
+    : "loading";
+  return useAsync<Section[]>(
+    teacher && roster ? `${teacher.id}:${version}:${manualKey}` : null,
+    () => roster!.getSections(teacher!.id),
   );
 }
 
 export function useStudents(sectionId: string | null) {
-  return useAsync<Student[]>(sectionId, () => getRosterProvider().getStudents(sectionId!));
+  const { roster } = useTeacher();
+  const manualClasses = useManualRosterStore((s) => s.classes);
+  const updated = manualClasses.find((c) => c.id === sectionId)?.updatedAt ?? 0;
+  return useAsync<Student[]>(roster && sectionId ? `${sectionId}:${updated}` : null, () =>
+    roster!.getStudents(sectionId!),
+  );
 }

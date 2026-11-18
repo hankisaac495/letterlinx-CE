@@ -6,7 +6,7 @@ import { MockAuthorize } from "@/components/auth/MockAuthorize";
 export const metadata: Metadata = { title: "Sign in (simulated) · LetterLinx Classroom Edition" };
 
 export function generateStaticParams() {
-  return [{ provider: "clever" }, { provider: "google" }];
+  return [{ provider: "clever" }, { provider: "google" }, { provider: "classlink" }];
 }
 
 export default function AuthPage() {

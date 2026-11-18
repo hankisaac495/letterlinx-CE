@@ -4,12 +4,21 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createHydrationHook } from "./hydration";
 
-export type AuthProvider = "clever" | "google";
+import type { RosterSource } from "@/lib/roster";
+
+/** How the teacher signed in (also where their rosters come from). */
+export type AuthProvider = RosterSource;
 
 export const PROVIDER_LABEL: Record<AuthProvider, string> = {
   clever: "Clever",
   google: "Google Classroom",
+  classlink: "ClassLink",
+  email: "Email",
 };
+
+/** Third-party rostering systems (as opposed to typed-in rosters). */
+export const isRosteringSystem = (p: AuthProvider): p is Exclude<AuthProvider, "email"> =>
+  p !== "email";
 
 export interface TeacherSession {
   teacherId: string;

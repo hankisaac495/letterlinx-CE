@@ -1,4 +1,5 @@
 import type { Board, DisplaySettings, RoundDuration, TargetWord, WordSetDraft } from "@/lib/game";
+import type { ClassInfo } from "@/lib/roster";
 
 export type RoomPhase = "lobby" | "countdown" | "playing" | "paused" | "ended";
 
@@ -20,6 +21,8 @@ export interface RoundConfig {
   draft: WordSetDraft;
   wordSetId: string | null;
   sectionId: string | null;
+  /** The class playing (name and roster travel with the round, so student devices need no roster access). */
+  classInfo?: ClassInfo | null;
   /** Teacher who launched the round (for reports). */
   teacherId?: string | null;
 }

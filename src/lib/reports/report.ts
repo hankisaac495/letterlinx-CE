@@ -16,6 +16,8 @@ export function toRoundResult(room: RoomState): RoundResult | null {
     words: round.words,
     settings: round.settings,
     sectionId: round.sectionId,
+    className: round.classInfo?.name,
+    classPeriod: round.classInfo?.period,
     teacherId: round.teacherId ?? null,
     wordSetId: round.wordSetId,
     startedAt: clock.startAt,

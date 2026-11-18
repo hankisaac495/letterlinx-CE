@@ -1,25 +1,64 @@
 "use client";
 
 import { useMemo } from "react";
-import { getRosterProvider, type Teacher } from "@/lib/roster";
-import { useSessionReady, useSessionStore, type TeacherSession } from "@/store/sessionStore";
+import { getAccountService } from "@/lib/accounts";
+import {
+  demoRosterFor,
+  ManualRosterProvider,
+  type RosterProvider,
+  type Teacher,
+} from "@/lib/roster";
+import { useManualRosterStore } from "@/store/manualRosterStore";
+import {
+  isRosteringSystem,
+  useSessionReady,
+  useSessionStore,
+  type TeacherSession,
+} from "@/store/sessionStore";
 
-/** The signed-in demo teacher (resolved synchronously from the local demo roster). */
+/** Resolves the signed-in teacher from their roster source or local account. */
+export function resolveTeacher(session: TeacherSession): Teacher | null {
+  if (isRosteringSystem(session.provider)) {
+    return (
+      demoRosterFor(session.provider)
+        .listDemoTeachers()
+        .find((t) => t.id === session.teacherId) ?? null
+    );
+  }
+  const account = getAccountService().get(session.teacherId);
+  return account
+    ? {
+        id: account.id,
+        district: "",
+        school: "",
+        name: { first: account.firstName, last: account.lastName },
+        title: account.title,
+      }
+    : null;
+}
+
+/** The roster source for a session: the simulated rostering system, or typed-in classes. */
+export function rosterFor(session: TeacherSession, teacher: Teacher): RosterProvider {
+  return isRosteringSystem(session.provider)
+    ? demoRosterFor(session.provider)
+    : new ManualRosterProvider(teacher, () => useManualRosterStore.getState().classes);
+}
+
 export function useTeacher(): {
   ready: boolean;
   session: TeacherSession | null;
   teacher: Teacher | null;
+  roster: RosterProvider | null;
 } {
   const ready = useSessionReady();
   const session = useSessionStore((s) => s.session);
-  const teacher = useMemo(
-    () =>
-      session
-        ? (getRosterProvider()
-            .listDemoTeachers()
-            .find((t) => t.id === session.teacherId) ?? null)
-        : null,
-    [session],
-  );
-  return { ready, session, teacher };
+  return useMemo(() => {
+    const teacher = ready && session ? resolveTeacher(session) : null;
+    return {
+      ready,
+      session,
+      teacher,
+      roster: session && teacher ? rosterFor(session, teacher) : null,
+    };
+  }, [ready, session]);
 }

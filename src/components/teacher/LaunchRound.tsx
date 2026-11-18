@@ -15,7 +15,7 @@ import {
 import { MAX_TEAMS, MIN_TEAMS } from "@/lib/live";
 import { useSections } from "@/hooks/useRoster";
 import { useTeacher } from "@/hooks/useTeacher";
-import type { Section } from "@/lib/roster";
+import { classInfoFrom, type Section } from "@/lib/roster";
 import { useHostReady, useHostStore } from "@/store/hostStore";
 import { useWordSetsReady, useWordSetStore, type WordSet } from "@/store/wordSetStore";
 import { useT } from "@/lib/i18n";
@@ -58,8 +58,15 @@ function LaunchForm({
         ? issueMessage(t, prepared.validation.errors[0])
         : t("launch.cantPlay");
 
-  const launch = () => {
+  const { roster } = useTeacher();
+  const [launching, setLaunching] = useState(false);
+  const launch = async () => {
     if (!prepared.ok) return;
+    setLaunching(true);
+    // The class list travels with the round so student devices never query the roster.
+    const section = sections.find((s) => s.id === sectionId);
+    const classInfo =
+      section && roster ? classInfoFrom(section, await roster.getStudents(section.id)) : null;
     const code = openRoom({
       title: wordSet.title,
       board: prepared.board,
@@ -72,6 +79,7 @@ function LaunchForm({
       },
       wordSetId: wordSet.id,
       sectionId: sectionId || null,
+      classInfo,
       teacherId,
       settings: { display, duration, teamMode, teamCount },
     });
@@ -234,8 +242,8 @@ function LaunchForm({
           <button
             type="button"
             className={`${btn.primary} py-3 text-lg`}
-            disabled={!prepared.ok}
-            onClick={launch}
+            disabled={!prepared.ok || launching}
+            onClick={() => void launch()}
           >
             {t("launch.open")}
           </button>
@@ -253,7 +261,7 @@ export function LaunchRound() {
   const hostReady = useHostReady();
   const wordSets = useWordSetStore((s) => s.wordSets);
   const { teacher } = useTeacher();
-  const { data: sections } = useSections(teacher?.id ?? null);
+  const { data: sections } = useSections();
   if (!setsReady || !hostReady || !sections)
     return <p className="p-6 text-slate-500">{t("common.loading")}</p>;
   const wordSet = wordSets.find((w) => w.id === params.get("set")) ?? wordSets[0];

@@ -7,10 +7,8 @@ import { useState } from "react";
 import { PlayGame, type LiveRoundInfo } from "@/components/game/PlayGame";
 import { btn, card, input } from "@/components/ui/styles";
 import { useNow } from "@/hooks/useNow";
-import { useStudents } from "@/hooks/useRoster";
 import { useStudentRoom } from "@/hooks/useStudentRoom";
 import { useT, type MessageKey } from "@/lib/i18n";
-import { studentDisplayName } from "@/lib/roster";
 import {
   formatStudentName,
   isValidRoomCode,
@@ -94,6 +92,9 @@ function CodeStep({
       <Link href="/join/badge" className={btn.secondary}>
         {t("join.badge")}
       </Link>
+      <Link href="/join/badge?provider=classlink" className={btn.secondary}>
+        {t("join.quickcard")}
+      </Link>
     </form>
   );
 }
@@ -108,7 +109,7 @@ function NamePicker({
   onBack(): void;
 }) {
   const t = useT();
-  const { data: students } = useStudents(snapshot.round.sectionId);
+  const students = snapshot.round.classInfo?.students ?? null;
   const joined = new Set(snapshot.players.map((p) => p.id));
   return (
     <div className={`${card} mx-auto mt-8 flex w-full max-w-lg flex-col gap-4 p-6`}>
@@ -121,7 +122,7 @@ function NamePicker({
       ) : (
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label={t("join.classList")}>
           {students.map((s) => {
-            const name = studentDisplayName(s);
+            const name = s.name;
             const taken = joined.has(s.id);
             return (
               <li key={s.id}>
@@ -225,7 +226,7 @@ function JoinFlow({
         onFound={(code, snapshot) => setFound({ code, snapshot })}
       />
     );
-  if (found.snapshot.round.sectionId) {
+  if (found.snapshot.round.classInfo?.students.length) {
     return (
       <NamePicker
         snapshot={found.snapshot}

@@ -48,8 +48,37 @@ export interface RosterProvider {
   getTeacher(teacherId: string): Promise<Teacher>;
   getSections(teacherId: string): Promise<Section[]>;
   getStudents(sectionId: string): Promise<Student[]>;
-  /** Single section lookup (used by the join flow). */
+  /** Single section lookup. */
   getSection(sectionId: string): Promise<Section>;
+  /** Re-pull rosters from the source system, where there is one. */
+  sync?(): Promise<{ syncedAt: number }>;
+}
+
+export interface DemoBadge {
+  section: Section;
+  teacher: Teacher;
+  students: Student[];
+}
+
+/** Extra helpers the simulated rostering systems expose for the demo sign-in screens. */
+export interface DemoRoster {
+  readonly schoolName: string;
+  readonly districtName: string;
+  listDemoTeachers(): Teacher[];
+  listDemoBadges(): DemoBadge[];
+  countSections(teacherId: string): number;
+}
+
+/**
+ * A class as carried with a live round: enough for students to pick their name and for
+ * reports, without any device needing roster access of its own.
+ */
+export interface ClassInfo {
+  id: string;
+  name: string;
+  period: string;
+  grade: string;
+  students: { id: string; name: string }[];
 }
 
 export class RosterNotFoundError extends Error {
@@ -65,5 +94,15 @@ export function studentDisplayName(s: Pick<Student, "name">): string {
 }
 
 export function teacherDisplayName(t: Pick<Teacher, "name" | "title">): string {
-  return `${t.title} ${t.name.last}`;
+  return t.title ? `${t.title} ${t.name.last}` : `${t.name.first} ${t.name.last}`.trim();
+}
+
+export function classInfoFrom(section: Section, students: Student[]): ClassInfo {
+  return {
+    id: section.id,
+    name: section.name,
+    period: section.period,
+    grade: section.grade,
+    students: students.map((s) => ({ id: s.id, name: studentDisplayName(s) })),
+  };
 }

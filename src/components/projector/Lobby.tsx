@@ -4,7 +4,6 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { RoomState } from "@/lib/live";
 import { useOrigin } from "@/hooks/useOrigin";
 import { useT, type MessageKey } from "@/lib/i18n";
-import { getRosterProvider } from "@/lib/roster";
 import { useHostStore } from "@/store/hostStore";
 import { displayName } from "./format";
 
@@ -22,9 +21,7 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
   const transport = useHostStore((s) => s.transport);
   const { settings } = room.round;
   const joinUrl = `${origin}/join`;
-  const section = room.round.sectionId
-    ? getRosterProvider().data.sections.find((s) => s.id === room.round.sectionId)
-    : undefined;
+  const section = room.round.classInfo ?? undefined;
 
   return (
     <div className="grid min-h-0 flex-1 gap-8 overflow-auto p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
