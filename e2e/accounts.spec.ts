@@ -50,6 +50,8 @@ test("email account: create, add a class by pasting names, run a round, sign bac
   page,
   context,
 }) => {
+  // Long journey with deliberately slow password hashing; allow headroom when tests run in parallel.
+  test.setTimeout(60_000);
   await fresh(page);
   await page.getByRole("link", { name: "create an account" }).click();
   await expect(page.getByRole("heading", { name: "Create a teacher account" })).toBeVisible();

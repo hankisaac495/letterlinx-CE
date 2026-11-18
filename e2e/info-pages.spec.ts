@@ -58,3 +58,14 @@ test("the projector view has no footer", async ({ page }) => {
   await page.waitForURL(/\/projector\//);
   await expect(page.getByRole("contentinfo")).toHaveCount(0);
 });
+
+test("How to play explains scoring and team mode", async ({ page }) => {
+  await page.goto("/how-to-play");
+  await expect(page.getByRole("heading", { name: "Scoring" })).toBeVisible();
+  await expect(page.getByText(/= 75 points/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Team mode" })).toBeVisible();
+  await page.getByRole("button", { name: "Español" }).click();
+  await expect(page.getByRole("heading", { name: "Puntuación" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Modo por equipos" })).toBeVisible();
+  await page.getByRole("button", { name: "English" }).click();
+});

@@ -70,6 +70,47 @@ export function HowToPlay() {
                   ]}
                 />
               </Section>
+              <Section title="Scoring">
+                <List
+                  items={[
+                    <>
+                      <strong>10 points per letter.</strong> Longer words are worth more: CELL is 40
+                      points, MEMBRANE is 80.
+                    </>,
+                    <>
+                      <strong>Speed bonus of up to 50%.</strong> A word found right at the start
+                      earns half its letter points again. The bonus shrinks steadily as the timer
+                      runs down and is gone at the end (in untimed rounds it shrinks over the first
+                      three minutes).
+                    </>,
+                    "No penalty for wrong guesses, and a word only scores the first time you find it.",
+                    <>
+                      <strong>Hints:</strong> if the teacher sets hints to cost points, a word found
+                      within 15 seconds of its hint scores half.
+                    </>,
+                    "Ties on the leaderboard go to whoever found more words, then to whoever finished first.",
+                  ]}
+                />
+                <p className="rounded-xl bg-slate-100 px-4 py-3 text-sm">
+                  <strong>Example:</strong> in a 2-minute round, a 6-letter word found after 1
+                  minute scores 60 letter points + a 15-point speed bonus ={" "}
+                  <strong>75 points</strong>.
+                </p>
+              </Section>
+              <Section title="Team mode">
+                <p>
+                  Turn on <strong>Team mode</strong> on the launch screen and choose 2 to 6 teams to
+                  make the round a team competition.
+                </p>
+                <List
+                  items={[
+                    "When you start the round, students are split evenly across the teams in the order they joined. Anyone who joins later goes to the smallest team.",
+                    "Everyone plays and scores on their own device exactly as usual; each student sees which team they’re on.",
+                    "The projector shows each team’s total score (the sum of its players’ scores) instead of individual names, and the end-of-round screen shows the final team standings.",
+                    "Reports still show every student’s results, with their team.",
+                  ]}
+                />
+              </Section>
               <Section title="Try it on your own">
                 <p>
                   Use <A href="/play">a practice round</A> to play the student view, or open the
@@ -145,6 +186,47 @@ export function HowToPlay() {
                       <strong>Modo pistas</strong>: muestra tu pista en lugar de la palabra hasta
                       que se encuentre.
                     </>,
+                  ]}
+                />
+              </Section>
+              <Section title="Puntuación">
+                <List
+                  items={[
+                    <>
+                      <strong>10 puntos por letra.</strong> Las palabras largas valen más: CELL vale
+                      40 puntos y MEMBRANE, 80.
+                    </>,
+                    <>
+                      <strong>Bono de velocidad de hasta el 50%.</strong> Una palabra encontrada
+                      justo al principio gana la mitad de sus puntos otra vez. El bono baja poco a
+                      poco mientras corre el tiempo y desaparece al final (en rondas sin tiempo,
+                      baja durante los tres primeros minutos).
+                    </>,
+                    "Equivocarse no resta puntos, y cada palabra solo puntúa la primera vez que la encuentras.",
+                    <>
+                      <strong>Ayudas:</strong> si el docente configura las ayudas con costo, una
+                      palabra encontrada en los 15 segundos siguientes a su ayuda vale la mitad.
+                    </>,
+                    "Los empates en la clasificación se deciden por quién encontró más palabras y, después, por quién terminó primero.",
+                  ]}
+                />
+                <p className="rounded-xl bg-slate-100 px-4 py-3 text-sm">
+                  <strong>Ejemplo:</strong> en una ronda de 2 minutos, una palabra de 6 letras
+                  encontrada al minuto vale 60 puntos por letras + 15 de bono ={" "}
+                  <strong>75 puntos</strong>.
+                </p>
+              </Section>
+              <Section title="Modo por equipos">
+                <p>
+                  Activa el <strong>Modo por equipos</strong> en la pantalla de lanzamiento y elige
+                  de 2 a 6 equipos para convertir la ronda en una competencia entre equipos.
+                </p>
+                <List
+                  items={[
+                    "Al empezar la ronda, los estudiantes se reparten en partes iguales entre los equipos según el orden en que se unieron. Quien se une más tarde va al equipo más pequeño.",
+                    "Cada uno juega y suma puntos en su propio dispositivo como siempre, y ve en qué equipo está.",
+                    "El proyector muestra el total de cada equipo (la suma de los puntos de sus integrantes) en lugar de nombres, y la pantalla final muestra la clasificación por equipos.",
+                    "Los informes siguen mostrando los resultados de cada estudiante, con su equipo.",
                   ]}
                 />
               </Section>
