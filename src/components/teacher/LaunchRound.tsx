@@ -25,7 +25,9 @@ function LaunchForm({
   allSets,
   sections,
   initialSectionId,
+  teacherId,
 }: {
+  teacherId: string | null;
   wordSet: WordSet;
   allSets: WordSet[];
   sections: Section[];
@@ -65,6 +67,7 @@ function LaunchForm({
       },
       wordSetId: wordSet.id,
       sectionId: sectionId || null,
+      teacherId,
       settings: { display, duration, teamMode, teamCount },
     });
     router.push(`/projector/${code}`);
@@ -264,6 +267,7 @@ export function LaunchRound() {
       allSets={wordSets}
       sections={sections}
       initialSectionId={requested && sections.some((s) => s.id === requested) ? requested : null}
+      teacherId={teacher?.id ?? null}
     />
   );
 }

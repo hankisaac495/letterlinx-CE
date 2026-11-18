@@ -20,6 +20,8 @@ export interface RoundConfig {
   draft: WordSetDraft;
   wordSetId: string | null;
   sectionId: string | null;
+  /** Teacher who launched the round (for reports). */
+  teacherId?: string | null;
 }
 
 export interface FoundSummary {

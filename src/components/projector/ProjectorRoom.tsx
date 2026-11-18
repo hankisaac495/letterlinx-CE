@@ -7,6 +7,7 @@ import { useHostSync } from "@/hooks/useHostSync";
 import { createRng, randomSeed, shuffle } from "@/lib/game";
 import { getRosterProvider, studentDisplayName } from "@/lib/roster";
 import { useHostReady, useHostStore } from "@/store/hostStore";
+import { useReportsReady } from "@/store/reportStore";
 import { ControlBar } from "./ControlBar";
 import { LiveView } from "./LiveView";
 import { Lobby } from "./Lobby";
@@ -18,6 +19,7 @@ const BOT_STAGGER_MS = 140;
 export function ProjectorRoom() {
   const { code } = useParams<{ code: string }>();
   const ready = useHostReady();
+  useReportsReady(); // load saved reports so finished rounds are appended, not overwritten
   const room = useHostStore((s) => s.room);
   const active = ready && room?.code === code;
   useHostSync(active ? code : null);

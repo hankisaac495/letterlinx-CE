@@ -26,7 +26,9 @@ import {
   type RoomState,
   type RoundConfig,
 } from "@/lib/live";
+import { toRoundResult } from "@/lib/reports";
 import { newId } from "@/lib/util/id";
+import { useReportStore } from "./reportStore";
 import { createHydrationHook } from "./hydration";
 
 interface HostState {
@@ -59,7 +61,21 @@ export const useHostStore = create<HostState>()(
         const { room } = get();
         if (!room) return;
         const next = fn(room);
-        if (next !== room) set({ room: next });
+        if (next === room) return;
+        set({ room: next });
+        // Save finished rounds for reports (and refresh if late progress arrives).
+        if (next.phase === "ended" && next.players.length > 0) {
+          const result = toRoundResult(next);
+          if (result) {
+            // Load saved reports first so recording never overwrites them.
+            const reports = useReportStore.persist;
+            if (reports.hasHydrated()) useReportStore.getState().record(result);
+            else
+              void Promise.resolve(reports.rehydrate()).then(() =>
+                useReportStore.getState().record(result),
+              );
+          }
+        }
       };
       const planFor = (room: RoomState, offsetMs: number) => planBot(room.round, rng(), offsetMs);
 

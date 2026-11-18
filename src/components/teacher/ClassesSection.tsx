@@ -69,6 +69,9 @@ function SectionCard({ section }: { section: Section }) {
         >
           {open ? "Hide roster" : "View roster"}
         </button>
+        <Link href={`/teacher/reports?section=${section.id}`} className={btn.ghost}>
+          Reports
+        </Link>
       </div>
     </li>
   );

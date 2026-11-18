@@ -2,25 +2,11 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { MiniBoard } from "@/components/game/MiniBoard";
+import { boardGeometry, MiniBoard } from "@/components/game/MiniBoard";
 import { wordColor } from "@/lib/game/colors";
 import type { Board, TargetWord } from "@/lib/game";
 
 const STEP_MS = 900;
-
-/** Board geometry in % of board width (matches MiniBoard's cqw padding and gap). */
-function centers(board: Board) {
-  const pad = 2.4;
-  const gap = 1.5;
-  const tile = (100 - 2 * pad - (board.cols - 1) * gap) / board.cols;
-  const height = 2 * pad + board.rows * tile + (board.rows - 1) * gap;
-  const at = (i: number) => {
-    const c = i % board.cols;
-    const r = Math.floor(i / board.cols);
-    return { x: pad + c * (tile + gap) + tile / 2, y: pad + r * (tile + gap) + tile / 2 };
-  };
-  return { at, height, tile };
-}
 
 /** End-of-round reveal: draws each word's path one after another. */
 export function RevealBoard({
@@ -47,7 +33,7 @@ export function RevealBoard({
     ...board,
     placements: revealed.map((w) => ({ word: w.normalized, path: w.path })),
   };
-  const { at, height, tile } = centers(board);
+  const { at, height, tile } = boardGeometry(board);
 
   return (
     <MiniBoard

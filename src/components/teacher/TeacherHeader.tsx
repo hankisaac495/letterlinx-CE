@@ -38,6 +38,9 @@ export function TeacherHeader() {
           <Link href="/teacher" className={navLink}>
             Dashboard
           </Link>
+          <Link href="/teacher/reports" className={navLink}>
+            Reports
+          </Link>
           <Link href="/join" className={navLink}>
             Student join
           </Link>

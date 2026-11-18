@@ -2,17 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { LoginButtons } from "@/components/auth/LoginButtons";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
-import { BOARD_COLS, BOARD_ROWS } from "@/lib/game/constants";
-
-const SAMPLE = "LETTERLINXCLASSROOMEDITIONFINDWORDSTOGETHERREADYSETGOAB";
+import { HeroDevices } from "@/components/home/HeroDevices";
 
 export default function Home() {
-  const tiles = SAMPLE.slice(0, BOARD_COLS * BOARD_ROWS).split("");
-
   return (
     <>
       <PrototypeBanner />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-4 py-12 md:flex-row md:justify-between">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center gap-10 px-4 py-12 md:flex-row md:justify-between">
         <section className="max-w-md text-center md:text-left">
           <Image
             src="/letterlinx-header-logo.svg"
@@ -46,20 +42,7 @@ export default function Home() {
           </div>
         </section>
 
-        <div
-          aria-hidden="true"
-          className="grid gap-1.5 rounded-2xl bg-slate-900 p-3 shadow-xl"
-          style={{ gridTemplateColumns: `repeat(${BOARD_COLS}, minmax(0, 1fr))` }}
-        >
-          {tiles.map((letter, i) => (
-            <div
-              key={i}
-              className="bg-tile text-tile-ink flex size-9 items-center justify-center rounded-md text-lg font-extrabold sm:size-11 sm:text-xl"
-            >
-              {letter}
-            </div>
-          ))}
-        </div>
+        <HeroDevices className="max-w-2xl md:w-[58%] md:shrink-0" />
       </main>
     </>
   );

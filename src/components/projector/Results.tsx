@@ -48,6 +48,12 @@ export function Results({ room }: { room: RoomState }) {
               Play again (new board)
             </button>
             <Link
+              href={`/teacher/reports/${room.code}-${room.roundNumber}`}
+              className="rounded-2xl bg-white/10 px-5 py-2.5 text-lg font-bold hover:bg-white/20 focus-visible:ring-4 focus-visible:ring-sky-400/50 focus-visible:outline-none"
+            >
+              View report
+            </Link>
+            <Link
               href="/teacher"
               onClick={(e) => {
                 e.preventDefault();
