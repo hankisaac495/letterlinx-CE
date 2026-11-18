@@ -806,6 +806,13 @@ export const MESSAGES = {
     "Can’t reach your account — changes will save when you’re back online",
     "No se puede conectar con tu cuenta: los cambios se guardarán al volver a estar en línea",
   ],
+  "footer.about": ["About", "Acerca de"],
+  "footer.howTo": ["How to play", "Cómo jugar"],
+  "footer.faq": ["FAQ", "Preguntas frecuentes"],
+  "footer.privacy": ["Privacy", "Privacidad"],
+  "footer.contact": ["Contact", "Contacto"],
+  "footer.edition": ["Classroom Edition", "Edición para el aula"],
+  "footer.nav": ["Site information", "Información del sitio"],
   // @append
 } as const satisfies Record<string, readonly [en: string, es: string]>;
 

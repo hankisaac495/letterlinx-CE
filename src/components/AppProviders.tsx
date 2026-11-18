@@ -1,10 +1,11 @@
 "use client";
 
 import { MotionConfig } from "framer-motion";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { sfx } from "@/lib/audio/sfx";
 import { CloudSync } from "./CloudSync";
 import { LocaleSync } from "./LocaleSync";
+import { SiteFooter } from "./SiteFooter";
 
 /**
  * App-wide client setup: respect prefers-reduced-motion in every animation,
@@ -25,6 +26,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <LocaleSync />
       <CloudSync />
       {children}
+      <Suspense fallback={null}>
+        <SiteFooter />
+      </Suspense>
     </MotionConfig>
   );
 }
