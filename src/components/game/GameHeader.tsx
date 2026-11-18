@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/lib/i18n";
 import { motion, useReducedMotion } from "framer-motion";
 import { timeRemainingMs, elapsedMs, type GameState } from "@/lib/game";
 
@@ -11,6 +12,7 @@ export function formatClock(ms: number): string {
 }
 
 export function GameHeader({ game, now, title }: { game: GameState; now: number; title: string }) {
+  const t = useT();
   const reduceMotion = useReducedMotion();
   const remaining = timeRemainingMs(game, now);
   const urgent = remaining !== null && remaining <= 10_000 && game.status === "playing";
@@ -20,7 +22,9 @@ export function GameHeader({ game, now, title }: { game: GameState; now: number;
         <p className="truncate text-xs font-semibold tracking-widest text-slate-500 uppercase">
           {title}
         </p>
-        <p className="text-sm text-slate-500">{remaining === null ? "Untimed" : "Time left"}</p>
+        <p className="text-sm text-slate-500">
+          {remaining === null ? t("game.untimed") : t("game.timeLeft")}
+        </p>
       </div>
       <motion.div
         data-testid="timer"
@@ -29,12 +33,14 @@ export function GameHeader({ game, now, title }: { game: GameState; now: number;
         }`}
         animate={urgent && !reduceMotion ? { scale: [1, 1.08, 1] } : { scale: 1 }}
         transition={urgent ? { duration: 0.5, repeat: Infinity, repeatDelay: 0.5 } : undefined}
-        aria-label={remaining === null ? "Elapsed time" : "Time left"}
+        aria-label={remaining === null ? t("game.elapsed") : t("game.timeLeft")}
       >
         {remaining === null ? formatClock(elapsedMs(game, now)) : formatClock(remaining)}
       </motion.div>
       <div className="text-right">
-        <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">Score</p>
+        <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
+          {t("game.score")}
+        </p>
         <p className="text-2xl font-black tabular-nums" data-testid="score">
           {game.score}
         </p>

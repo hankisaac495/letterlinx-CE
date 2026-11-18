@@ -12,6 +12,8 @@ import {
   type DisplaySettings,
   type RoundDuration,
 } from "@/lib/game";
+import { useT } from "@/lib/i18n";
+import { generationMessage, issueMessage } from "@/lib/i18n/game";
 import { useGameStore } from "@/store/gameStore";
 import { useWordSetsReady, useWordSetStore, type WordSet } from "@/store/wordSetStore";
 import { DisplaySettingsFields } from "@/components/teacher/DisplaySettingsFields";
@@ -31,11 +33,12 @@ export function PlayDemoFromQuery() {
   const saved = useWordSetStore((s) =>
     setId ? s.wordSets.find((w) => w.id === setId) : undefined,
   );
-  if (setId && !ready) return <p className="p-6 text-slate-500">Loading…</p>;
+  if (setId && !ready) return <p className="p-6 text-slate-500">…</p>;
   return <PlayDemo key={saved?.id ?? "samples"} saved={saved} />;
 }
 
 export function PlayDemo({ saved }: { saved?: WordSet }) {
+  const t = useT();
   const game = useGameStore((s) => s.game);
   const start = useGameStore((s) => s.start);
   const reset = useGameStore((s) => s.reset);
@@ -53,10 +56,13 @@ export function PlayDemo({ saved }: { saved?: WordSet }) {
   const onStart = () => {
     const prepared = prepareRound({ ...set, display }, saved?.previewSeed ?? randomSeed());
     if (!prepared.ok) {
+      const issue = prepared.validation?.errors[0];
       setError(
-        prepared.generation?.message ??
-          prepared.validation?.errors[0]?.message ??
-          "Couldn't start the round.",
+        prepared.generation
+          ? generationMessage(t, prepared.generation)
+          : issue
+            ? issueMessage(t, issue)
+            : t("practice.cantStart"),
       );
       return;
     }
@@ -67,12 +73,10 @@ export function PlayDemo({ saved }: { saved?: WordSet }) {
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-8">
       <p className="text-sm font-semibold tracking-widest text-blue-700 uppercase">
-        Practice round
+        {t("practice.eyebrow")}
       </p>
-      <h1 className="mt-1 text-3xl font-black tracking-tight">Try the student view</h1>
-      <p className="mt-2 text-slate-600">
-        Drag across neighbouring letters (including diagonals) to spell a word, then let go.
-      </p>
+      <h1 className="mt-1 text-3xl font-black tracking-tight">{t("practice.title")}</h1>
+      <p className="mt-2 text-slate-600">{t("practice.howTo")}</p>
 
       <form
         className="mt-6 flex flex-col gap-6 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"
@@ -83,20 +87,20 @@ export function PlayDemo({ saved }: { saved?: WordSet }) {
       >
         {saved ? (
           <div>
-            <p className="text-sm font-bold">Word set</p>
+            <p className="text-sm font-bold">{t("common.wordSet")}</p>
             <p className="mt-1 font-semibold">
               {saved.title}{" "}
               <Link
                 href="/play"
                 className="ml-2 text-sm font-semibold text-blue-700 hover:underline"
               >
-                Use a sample instead
+                {t("practice.useSample")}
               </Link>
             </p>
           </div>
         ) : (
           <fieldset>
-            <legend className="text-sm font-bold">Word set</legend>
+            <legend className="text-sm font-bold">{t("common.wordSet")}</legend>
             <div className="mt-2 flex flex-wrap gap-2">
               {(Object.keys(SAMPLE_WORD_SETS) as SampleKey[]).map((key) => (
                 <label
@@ -125,7 +129,7 @@ export function PlayDemo({ saved }: { saved?: WordSet }) {
         <DisplaySettingsFields value={display} onChange={setDisplay} />
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm font-bold">Timer</span>
+          <span className="text-sm font-bold">{t("common.timer")}</span>
           <select
             className={`${select} w-40`}
             value={String(duration)}
@@ -139,10 +143,10 @@ export function PlayDemo({ saved }: { saved?: WordSet }) {
           >
             {ROUND_DURATIONS.map((d) => (
               <option key={d} value={d}>
-                {d} seconds
+                {t("common.seconds", { n: d })}
               </option>
             ))}
-            <option value="untimed">Untimed</option>
+            <option value="untimed">{t("common.untimed")}</option>
           </select>
         </label>
 
@@ -156,7 +160,7 @@ export function PlayDemo({ saved }: { saved?: WordSet }) {
           type="submit"
           className="rounded-xl bg-blue-700 px-4 py-3 text-lg font-extrabold text-white shadow-sm hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
         >
-          Start round
+          {t("common.startRound")}
         </button>
       </form>
     </div>

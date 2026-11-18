@@ -17,6 +17,8 @@ import {
   type WordSetDraft,
 } from "@/lib/game";
 import { MiniBoard } from "@/components/game/MiniBoard";
+import { useT } from "@/lib/i18n";
+import { generationMessage, issueMessage } from "@/lib/i18n/game";
 import { btn, card, check, input, select } from "@/components/ui/styles";
 import { useWordSetStore, type WordSet } from "@/store/wordSetStore";
 import { DisplaySettingsFields } from "./DisplaySettingsFields";
@@ -43,6 +45,7 @@ function initialDraft(existing?: WordSet): WordSetDraft {
 const WORD_LEVEL = new Set(["word", "words"]);
 
 function LetterCounter({ count, max }: { count: number; max: number }) {
+  const t = useT();
   const ratio = Math.min(1, count / max);
   const tone = count > max ? "bg-rose-600" : count > max * 0.85 ? "bg-amber-500" : "bg-emerald-600";
   return (
@@ -54,13 +57,14 @@ function LetterCounter({ count, max }: { count: number; max: number }) {
         data-testid="letter-counter"
         className={`text-sm font-bold tabular-nums ${count > max ? "text-rose-700" : "text-slate-700"}`}
       >
-        {count} / {max} letters
+        {t("editor.lettersCount", { count, max })}
       </span>
     </div>
   );
 }
 
 export function WordSetEditor({ existing }: { existing?: WordSet }) {
+  const t = useT();
   const router = useRouter();
   const createSet = useWordSetStore((s) => s.create);
   const updateSet = useWordSetStore((s) => s.update);
@@ -100,9 +104,11 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
     }));
   const addWord = () => setDraft((d) => ({ ...d, words: [...d.words, { text: "", clue: "" }] }));
 
-  const generationError = preview && !preview.ok ? preview.error.message : null;
-  const listError = issuesFor(validation.errors, "words")[0]?.message;
-  const displayError = issuesFor(validation.errors, "display")[0]?.message;
+  const generationError = preview && !preview.ok ? generationMessage(t, preview.error) : null;
+  const listIssue = issuesFor(validation.errors, "words")[0];
+  const listError = listIssue ? issueMessage(t, listIssue) : undefined;
+  const displayIssue = issuesFor(validation.errors, "display")[0];
+  const displayError = displayIssue ? issueMessage(t, displayIssue) : undefined;
   const errorCount = validation.errors.length + (generationError ? 1 : 0);
 
   const onSave = (e: React.FormEvent) => {
@@ -137,10 +143,10 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link href="/teacher" className="text-sm font-semibold text-blue-700 hover:underline">
-            ← Dashboard
+            {t("editor.backDashboard")}
           </Link>
           <h1 className="mt-1 text-3xl font-black tracking-tight">
-            {existing ? "Edit word set" : "New word set"}
+            {existing ? t("editor.editTitle") : t("editor.newTitle")}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -148,10 +154,10 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
             <DeleteWordSetButton wordSet={existing} onDeleted={() => router.push("/teacher")} />
           )}
           <Link href="/teacher" className={btn.secondary}>
-            Cancel
+            {t("common.cancel")}
           </Link>
           <button type="submit" className={btn.primary}>
-            Save word set
+            {t("editor.save")}
           </button>
         </div>
       </div>
@@ -163,7 +169,7 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
           role="alert"
           className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800 ring-1 ring-rose-200"
         >
-          Fix {errorCount === 1 ? "1 problem" : `${errorCount} problems`} before saving.
+          {errorCount === 1 ? t("editor.fixOne") : t("editor.fixMany", { count: errorCount })}
         </div>
       )}
 
@@ -172,13 +178,13 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
           <section className={`${card} grid gap-4 p-5 sm:grid-cols-[1fr_auto]`}>
             <div className="flex flex-col gap-1">
               <label htmlFor="ws-title" className="text-sm font-bold">
-                Title
+                {t("editor.title")}
               </label>
               <input
                 id="ws-title"
                 className={input}
                 value={draft.title}
-                placeholder="e.g. Unit 3 · Cells"
+                placeholder={t("editor.titlePlaceholder")}
                 maxLength={80}
                 aria-invalid={visible("title") && titleErrors.length > 0}
                 aria-describedby={titleErrors.length ? "ws-title-error" : undefined}
@@ -187,13 +193,13 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
               />
               {visible("title") && titleErrors[0] && (
                 <p id="ws-title-error" className="text-sm font-semibold text-rose-700">
-                  {titleErrors[0].message}
+                  {issueMessage(t, titleErrors[0])}
                 </p>
               )}
             </div>
             <div className="flex flex-col gap-1">
               <label htmlFor="ws-language" className="text-sm font-bold">
-                Language
+                {t("editor.language")}
               </label>
               <select
                 id="ws-language"
@@ -201,8 +207,8 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                 value={draft.language}
                 onChange={(e) => setDraft((d) => ({ ...d, language: e.target.value as Language }))}
               >
-                <option value="en">English</option>
-                <option value="es">Spanish (Español)</option>
+                <option value="en">{t("common.english")}</option>
+                <option value="es">{t("common.spanish")}</option>
               </select>
             </div>
           </section>
@@ -214,8 +220,10 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                   Words
                 </h2>
                 <p className="text-sm text-slate-500">
-                  {MIN_WORDS}–{MAX_WORDS} words, 3–9 letters each, letters only
-                  {draft.language === "es" ? " (Ñ and accents are fine)" : ""}. Clues are optional.
+                  {t(draft.language === "es" ? "editor.rulesEs" : "editor.rules", {
+                    min: MIN_WORDS,
+                    max: MAX_WORDS,
+                  })}
                 </p>
               </div>
               <LetterCounter count={validation.totalLetters} max={validation.maxLetters} />
@@ -245,13 +253,13 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                     <div className="grid gap-2 sm:grid-cols-[minmax(0,14rem)_1fr]">
                       <div className="relative">
                         <label htmlFor={`ws-word-${index}`} className="sr-only">
-                          Word {index + 1}
+                          {t("editor.wordN", { n: index + 1 })}
                         </label>
                         <input
                           id={`ws-word-${index}`}
                           className={`${input} pr-10 font-extrabold tracking-wide uppercase`}
                           value={w.text}
-                          placeholder="WORD"
+                          placeholder={t("editor.wordPlaceholder")}
                           autoComplete="off"
                           spellCheck={false}
                           maxLength={20}
@@ -271,7 +279,7 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                       </div>
                       <div className="relative">
                         <label htmlFor={`ws-clue-${index}`} className="sr-only">
-                          Clue for word {index + 1} (optional)
+                          {t("editor.clueN", { n: index + 1 })}
                         </label>
                         <input
                           id={`ws-clue-${index}`}
@@ -279,8 +287,8 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                           value={w.clue ?? ""}
                           placeholder={
                             draft.display.showClues
-                              ? "Clue (required for clue mode)"
-                              : "Clue (optional)"
+                              ? t("editor.clueRequiredPlaceholder")
+                              : t("editor.cluePlaceholder")
                           }
                           maxLength={MAX_CLUE_LENGTH + 20}
                           aria-invalid={showClueErr}
@@ -304,7 +312,7 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                       type="button"
                       className={`${btn.ghost} mt-1 text-slate-500`}
                       onClick={() => removeWord(index)}
-                      aria-label={`Remove word ${index + 1}`}
+                      aria-label={t("editor.removeWord", { n: index + 1 })}
                     >
                       <svg viewBox="0 0 20 20" className="size-4" aria-hidden="true">
                         <path
@@ -322,18 +330,18 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                       {showWordErr &&
                         wordErrors.map((e) => (
                           <p key={e.code} className="font-semibold text-rose-700">
-                            {e.message}
+                            {issueMessage(t, e)}
                           </p>
                         ))}
                       {showClueErr &&
                         clueErrors.map((e) => (
                           <p key={e.code} className="font-semibold text-rose-700">
-                            {e.message}
+                            {issueMessage(t, e)}
                           </p>
                         ))}
                       {warnings.map((e, i) => (
                         <p key={i} className="font-semibold text-amber-700">
-                          ⚠ {e.message}
+                          ⚠ {issueMessage(t, e)}
                         </p>
                       ))}
                     </div>
@@ -349,7 +357,7 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                 onClick={addWord}
                 disabled={draft.words.length >= MAX_WORDS}
               >
-                + Add word
+                {t("editor.addWord")}
               </button>
               {(submitted || touched.size > 1) && listError && (
                 <p className="text-sm font-semibold text-rose-700" role="status">
@@ -374,7 +382,7 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
         >
           <div className="flex items-center justify-between">
             <h2 id="ws-preview" className="text-lg font-black">
-              Board preview
+              {t("editor.preview")}
             </h2>
             <button
               type="button"
@@ -392,12 +400,13 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                   strokeLinejoin="round"
                 />
               </svg>
-              Shuffle board
+              {t("editor.shuffle")}
             </button>
           </div>
           {preview?.ok ? (
             <>
               <MiniBoard
+                label={t("board.preview", { rows: 9, cols: 6 })}
                 board={preview.board}
                 showWords={showWords}
                 wordIdFor={(word) => validation.words.findIndex((w) => w.normalized === word)}
@@ -409,11 +418,9 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
                   checked={showWords}
                   onChange={(e) => setShowWords(e.target.checked)}
                 />
-                Highlight hidden words
+                {t("editor.highlight")}
               </label>
-              <p className="text-xs text-slate-500">
-                Every student gets this exact board. Shuffle to try another layout.
-              </p>
+              <p className="text-xs text-slate-500">{t("editor.sameBoard")}</p>
             </>
           ) : generationError ? (
             <p
@@ -425,8 +432,8 @@ export function WordSetEditor({ existing }: { existing?: WordSet }) {
           ) : (
             <div className="flex min-h-40 items-center justify-center rounded-2xl bg-slate-100 p-6 text-center text-sm text-slate-500 lg:aspect-[2/3]">
               {validation.words.length < MIN_WORDS
-                ? `Add at least ${MIN_WORDS} words to preview the board.`
-                : "Fix the highlighted words to preview the board."}
+                ? t("editor.addMore", { min: MIN_WORDS })
+                : t("editor.fixWords")}
             </div>
           )}
         </aside>

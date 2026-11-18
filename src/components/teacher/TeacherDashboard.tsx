@@ -4,25 +4,27 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { WordDisplayMode } from "@/lib/game";
 import { btn, card } from "@/components/ui/styles";
+import { useT, type MessageKey, type Translate } from "@/lib/i18n";
 import { useHostReady, useHostStore } from "@/store/hostStore";
 import { useWordSetsReady, useWordSetStore, type WordSet } from "@/store/wordSetStore";
 import { ClassesSection } from "./ClassesSection";
 import { DeleteWordSetButton } from "./DeleteWordSetButton";
 
-const MODE_LABEL: Record<WordDisplayMode, string> = {
-  list: "Full list",
-  oneAtATime: "One at a time",
-  hidden: "Hidden words",
+const MODE_LABEL: Record<WordDisplayMode, MessageKey> = {
+  list: "mode.list",
+  oneAtATime: "mode.oneAtATime",
+  hidden: "mode.hidden",
 };
 
-function describeDisplay(ws: WordSet): string {
-  const parts = [MODE_LABEL[ws.display.mode]];
-  if (ws.display.showClues && ws.display.mode !== "hidden") parts.push("clues");
-  if (ws.display.allowHints && ws.display.mode === "hidden") parts.push("hints");
+function describeDisplay(ws: WordSet, t: Translate): string {
+  const parts = [t(MODE_LABEL[ws.display.mode])];
+  if (ws.display.showClues && ws.display.mode !== "hidden") parts.push(t("mode.clues"));
+  if (ws.display.allowHints && ws.display.mode === "hidden") parts.push(t("mode.hints"));
   return parts.join(" · ");
 }
 
 function WordSetCard({ ws }: { ws: WordSet }) {
+  const t = useT();
   const router = useRouter();
   const duplicate = useWordSetStore((s) => s.duplicate);
   const letters = ws.words.reduce((n, w) => n + [...w.text].length, 0);
@@ -45,20 +47,20 @@ function WordSetCard({ ws }: { ws: WordSet }) {
         ))}
       </p>
       <p className="text-sm text-slate-500">
-        {ws.words.length} words · {letters} letters · {describeDisplay(ws)}
+        {t("dash.cardMeta", { words: ws.words.length, letters, display: describeDisplay(ws, t) })}
       </p>
       <div className="mt-auto flex flex-wrap items-center gap-1 border-t border-slate-100 pt-3">
         <Link
           href={`/teacher/launch?set=${ws.id}`}
           className="mr-1 inline-flex items-center rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-extrabold text-white hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
         >
-          Launch
+          {t("dash.launch")}
         </Link>
         <Link href={`/teacher/word-sets/${ws.id}`} className={btn.ghost}>
-          Edit
+          {t("dash.edit")}
         </Link>
         <Link href={`/play?set=${ws.id}`} className={btn.ghost}>
-          Practice
+          {t("dash.practice")}
         </Link>
         <button
           type="button"
@@ -68,7 +70,7 @@ function WordSetCard({ ws }: { ws: WordSet }) {
             if (id) router.push(`/teacher/word-sets/${id}`);
           }}
         >
-          Duplicate
+          {t("dash.duplicate")}
         </button>
         <span className="ml-auto">
           <DeleteWordSetButton wordSet={ws} compact />
@@ -79,6 +81,7 @@ function WordSetCard({ ws }: { ws: WordSet }) {
 }
 
 export function TeacherDashboard() {
+  const t = useT();
   const ready = useWordSetsReady();
   const wordSets = useWordSetStore((s) => s.wordSets);
   const hostReady = useHostReady();
@@ -87,20 +90,21 @@ export function TeacherDashboard() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6">
       <div>
-        <h1 className="text-3xl font-black tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-slate-600">
-          Create word sets, then launch a live round for a class.
-        </p>
+        <h1 className="text-3xl font-black tracking-tight">{t("dash.title")}</h1>
+        <p className="mt-1 text-slate-600">{t("dash.lead")}</p>
       </div>
 
       {hostReady && openRoom && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-emerald-50 px-5 py-4 ring-1 ring-emerald-200">
           <p className="text-emerald-900">
-            Live round <strong className="font-mono">{openRoom.code}</strong> ·{" "}
-            {openRoom.round.title} · {openRoom.players.length} students
+            {t("dash.liveRound", {
+              code: openRoom.code,
+              title: openRoom.round.title,
+              count: openRoom.players.length,
+            })}
           </p>
           <Link href={`/projector/${openRoom.code}`} className={btn.primary}>
-            Open projector
+            {t("dash.openProjector")}
           </Link>
         </div>
       )}
@@ -110,18 +114,18 @@ export function TeacherDashboard() {
       <section aria-labelledby="sets-heading">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="sets-heading" className="text-xl font-black">
-            Word sets
+            {t("dash.wordSets")}
           </h2>
           <Link href="/teacher/word-sets/new" className={btn.primary}>
-            + New word set
+            {t("dash.newSet")}
           </Link>
         </div>
         {!ready ? (
-          <p className="mt-3 text-slate-500">Loading…</p>
+          <p className="mt-3 text-slate-500">{t("common.loading")}</p>
         ) : wordSets.length === 0 ? (
           <div className={`${card} mt-3 p-8 text-center`}>
-            <p className="font-bold">No word sets yet.</p>
-            <p className="mt-1 text-slate-500">Create one with 3–8 vocabulary words.</p>
+            <p className="font-bold">{t("dash.empty")}</p>
+            <p className="mt-1 text-slate-500">{t("dash.emptyHelp")}</p>
           </div>
         ) : (
           <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

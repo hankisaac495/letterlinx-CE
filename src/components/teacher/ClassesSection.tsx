@@ -7,22 +7,25 @@ import { useNow } from "@/hooks/useNow";
 import { useSections, useStudents } from "@/hooks/useRoster";
 import { useTeacher } from "@/hooks/useTeacher";
 import { getRosterProvider, studentDisplayName, type Section } from "@/lib/roster";
+import { useT, type Translate } from "@/lib/i18n";
 import { PROVIDER_LABEL, useSessionStore } from "@/store/sessionStore";
 
-function timeAgo(then: number, now: number): string {
+function timeAgo(then: number, now: number, t: Translate): string {
   const s = Math.max(0, Math.round((now - then) / 1000));
-  if (s < 10) return "just now";
-  if (s < 60) return `${s} seconds ago`;
+  if (s < 10) return t("time.justNow");
+  if (s < 60) return t("time.seconds", { n: s });
   const m = Math.round(s / 60);
-  if (m < 60) return `${m} minute${m === 1 ? "" : "s"} ago`;
+  if (m < 60) return m === 1 ? t("time.minute") : t("time.minutes", { n: m });
   const h = Math.round(m / 60);
-  if (h < 24) return `${h} hour${h === 1 ? "" : "s"} ago`;
+  if (h < 24) return h === 1 ? t("time.hour") : t("time.hours", { n: h });
   return new Date(then).toLocaleDateString();
 }
 
 function Roster({ section }: { section: Section }) {
+  const t = useT();
   const { data, loading } = useStudents(section.id);
-  if (loading || !data) return <p className="text-sm text-slate-500">Loading roster…</p>;
+  if (loading || !data)
+    return <p className="text-sm text-slate-500">{t("classes.loadingRoster")}</p>;
   return (
     <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm text-slate-700 sm:grid-cols-3">
       {data.map((s) => (
@@ -33,6 +36,7 @@ function Roster({ section }: { section: Section }) {
 }
 
 function SectionCard({ section }: { section: Section }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const rosterId = `roster-${section.id}`;
   return (
@@ -41,11 +45,11 @@ function SectionCard({ section }: { section: Section }) {
         <div>
           <h3 className="text-lg leading-tight font-black">{section.name}</h3>
           <p className="text-sm text-slate-500">
-            Period {section.period} · Grade {section.grade}
+            {t("classes.periodGrade", { period: section.period, grade: section.grade })}
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-sm font-bold text-blue-800">
-          {section.students.length} students
+          {t("classes.students", { count: section.students.length })}
         </span>
       </div>
       {open && (
@@ -58,7 +62,7 @@ function SectionCard({ section }: { section: Section }) {
           href={`/teacher/launch?section=${section.id}`}
           className="mr-1 inline-flex items-center rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-extrabold text-white hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
         >
-          Launch round
+          {t("classes.launch")}
         </Link>
         <button
           type="button"
@@ -67,10 +71,10 @@ function SectionCard({ section }: { section: Section }) {
           aria-controls={rosterId}
           onClick={() => setOpen((o) => !o)}
         >
-          {open ? "Hide roster" : "View roster"}
+          {open ? t("classes.hideRoster") : t("classes.viewRoster")}
         </button>
         <Link href={`/teacher/reports?section=${section.id}`} className={btn.ghost}>
-          Reports
+          {t("classes.reports")}
         </Link>
       </div>
     </li>
@@ -78,6 +82,7 @@ function SectionCard({ section }: { section: Section }) {
 }
 
 export function ClassesSection() {
+  const t = useT();
   const { teacher, session } = useTeacher();
   const markSynced = useSessionStore((s) => s.markSynced);
   const [version, setVersion] = useState(0);
@@ -98,13 +103,16 @@ export function ClassesSection() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 id="classes-heading" className="text-xl font-black">
-            Classes
+            {t("classes.title")}
           </h2>
           {session && (
             <p className="text-sm text-slate-500" aria-live="polite" data-testid="last-synced">
               {syncing
-                ? `Syncing with ${PROVIDER_LABEL[session.provider]}…`
-                : `From ${PROVIDER_LABEL[session.provider]} (simulated) · Last synced ${timeAgo(session.lastSyncedAt, Math.max(now, session.lastSyncedAt))}`}
+                ? t("classes.syncing", { provider: PROVIDER_LABEL[session.provider] })
+                : t("classes.synced", {
+                    provider: PROVIDER_LABEL[session.provider],
+                    ago: timeAgo(session.lastSyncedAt, Math.max(now, session.lastSyncedAt), t),
+                  })}
             </p>
           )}
         </div>
@@ -123,11 +131,11 @@ export function ClassesSection() {
               strokeLinejoin="round"
             />
           </svg>
-          {syncing ? "Syncing…" : "Sync roster"}
+          {syncing ? t("classes.syncingShort") : t("classes.sync")}
         </button>
       </div>
       {loading || !sections ? (
-        <p className="mt-3 text-slate-500">Loading classes…</p>
+        <p className="mt-3 text-slate-500">{t("classes.loading")}</p>
       ) : (
         <ul className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sections.map((s) => (

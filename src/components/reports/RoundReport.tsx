@@ -6,7 +6,6 @@ import { useMemo } from "react";
 import { MiniBoard } from "@/components/game/MiniBoard";
 import { btn, card } from "@/components/ui/styles";
 import { wordColor } from "@/lib/game/colors";
-import { TEAM_NAMES } from "@/lib/live";
 import {
   csvFileName,
   regenerateBoard,
@@ -19,6 +18,7 @@ import {
 import { getRosterProvider } from "@/lib/roster";
 import { downloadText } from "@/lib/util/download";
 import { useReportsReady, useReportStore } from "@/store/reportStore";
+import { useLocale, useT, type MessageKey } from "@/lib/i18n";
 import { formatDate, MODE_LABEL, pct, secs } from "./format";
 
 function Stat({
@@ -54,19 +54,21 @@ function WordBadge({ id }: { id: number }) {
 }
 
 export function RoundReport() {
+  const t = useT();
+  const locale = useLocale();
   const { roundId } = useParams<{ roundId: string }>();
   const ready = useReportsReady();
   const result = useReportStore((s) => s.results.find((r) => r.id === roundId));
   const board = useMemo(() => (result ? regenerateBoard(result) : null), [result]);
 
-  if (!ready) return <p className="p-6 text-slate-500">Loading…</p>;
+  if (!ready) return <p className="p-6 text-slate-500">{t("common.loading")}</p>;
   if (!result) {
     return (
       <div className="mx-auto max-w-md p-8 text-center">
-        <h1 className="text-2xl font-black">Report not found</h1>
-        <p className="mt-2 text-slate-600">Reports are saved in the browser that ran the round.</p>
+        <h1 className="text-2xl font-black">{t("rep.notFound")}</h1>
+        <p className="mt-2 text-slate-600">{t("rep.notFoundBody")}</p>
         <Link href="/teacher/reports" className={`${btn.primary} mt-5`}>
-          All reports
+          {t("rep.all")}
         </Link>
       </div>
     );
@@ -90,24 +92,26 @@ export function RoundReport() {
             href={`/teacher/reports${result.sectionId ? `?section=${result.sectionId}` : "?section=none"}`}
             className="text-sm font-semibold text-blue-700 hover:underline"
           >
-            ← Reports
+            {t("rep.back")}
           </Link>
           <h1 className="mt-1 text-3xl font-black tracking-tight">
             {result.title}
             {result.sample && (
               <span className="ml-3 rounded-md bg-slate-200 px-2 py-0.5 align-middle text-sm font-bold text-slate-600">
-                Sample
+                {t("rep.sample")}
               </span>
             )}
           </h1>
           <p className="mt-1 text-slate-600">
-            {formatDate(result.startedAt, true)} ·{" "}
-            {section ? `${section.name}, Period ${section.period}` : "No class"} ·{" "}
-            {MODE_LABEL[display.mode]}
-            {display.showClues ? " with clues" : ""} ·{" "}
-            {duration === "untimed" ? "Untimed" : `${duration} s timer`} · played{" "}
-            {secs(result.playedMs)}
-            {teamMode ? ` · ${result.settings.teamCount} teams` : ""}
+            {formatDate(result.startedAt, true, locale)} ·{" "}
+            {section
+              ? t("rep.sectionPeriod", { name: section.name, period: section.period })
+              : t("rep.noClass")}{" "}
+            · {t(MODE_LABEL[display.mode])}
+            {display.showClues ? t("rep.withClues") : ""} ·{" "}
+            {duration === "untimed" ? t("common.untimed") : t("rep.timer", { n: duration })} ·{" "}
+            {t("rep.played", { time: secs(result.playedMs) })}
+            {teamMode ? t("rep.teams", { count: result.settings.teamCount }) : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -116,24 +120,24 @@ export function RoundReport() {
             className={btn.secondary}
             onClick={() => downloadText(csvFileName(result, "students"), studentsCsv(result))}
           >
-            Export students CSV
+            {t("rep.exportStudents")}
           </button>
           <button
             type="button"
             className={btn.secondary}
             onClick={() => downloadText(csvFileName(result, "words"), wordsCsv(result))}
           >
-            Export words CSV
+            {t("rep.exportWords")}
           </button>
         </div>
       </div>
 
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat label="Students" value={summary.players} testId="stat-students" />
-        <Stat label="Average score" value={summary.avgScore} />
-        <Stat label="Words found" value={pct(summary.wordsFoundShare)} />
-        <Stat label="Found every word" value={pct(summary.completionShare)} />
-        {hints && <Stat label="Hints used" value={summary.hintsUsed} />}
+        <Stat label={t("rep.students")} value={summary.players} testId="stat-students" />
+        <Stat label={t("rep.avgScoreLong")} value={summary.avgScore} />
+        <Stat label={t("rep.wordsFound")} value={pct(summary.wordsFoundShare)} />
+        <Stat label={t("rep.foundEvery")} value={pct(summary.completionShare)} />
+        {hints && <Stat label={t("rep.hintsUsed")} value={summary.hintsUsed} />}
       </dl>
 
       {review.length > 0 && (
@@ -141,9 +145,11 @@ export function RoundReport() {
           className="rounded-2xl bg-amber-50 px-5 py-4 ring-1 ring-amber-200"
           data-testid="review-callout"
         >
-          <p className="font-bold text-amber-900">Words to review</p>
+          <p className="font-bold text-amber-900">{t("rep.review")}</p>
           <p className="mt-1 text-amber-900">
-            {review.map((w) => `${w.word} (${pct(w.share)} found)`).join(" · ")}
+            {review
+              .map((w) => t("rep.reviewItem", { word: w.word, pct: pct(w.share) }))
+              .join(" · ")}
           </p>
         </div>
       )}
@@ -151,24 +157,24 @@ export function RoundReport() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
         <section className={`${card} p-5`} aria-labelledby="words-heading">
           <h2 id="words-heading" className="text-xl font-black">
-            By word
+            {t("rep.byWord")}
           </h2>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[520px] text-left text-sm" data-testid="words-table">
               <thead className="border-b border-slate-200 text-xs text-slate-500 uppercase">
                 <tr>
                   <th scope="col" className="py-2 pr-3 font-semibold">
-                    Word
+                    {t("rep.word")}
                   </th>
                   <th scope="col" className="py-2 pr-3 font-semibold">
-                    Found by class
+                    {t("rep.foundByClass")}
                   </th>
                   <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                    Avg time
+                    {t("rep.avgTime")}
                   </th>
                   {hints && (
                     <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                      Hints
+                      {t("rep.hints")}
                     </th>
                   )}
                 </tr>
@@ -185,7 +191,7 @@ export function RoundReport() {
                         {w.word}
                         {w.review && (
                           <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[11px] font-bold text-amber-900">
-                            Review
+                            {t("rep.reviewTag")}
                           </span>
                         )}
                       </span>
@@ -223,26 +229,27 @@ export function RoundReport() {
 
         <aside className={`${card} flex h-fit flex-col gap-2 p-5`} aria-labelledby="board-heading">
           <h2 id="board-heading" className="text-lg font-black">
-            Board
+            {t("rep.board")}
           </h2>
           {board ? (
             <>
               <MiniBoard
+                label={t("board.preview", { rows: 9, cols: 6 })}
                 board={board}
                 showWords
                 wordIdFor={(word) => result.words.find((w) => w.normalized === word)?.id ?? 0}
               />
-              <p className="text-xs text-slate-500">Rebuilt from seed {result.seed}.</p>
+              <p className="text-xs text-slate-500">{t("rep.rebuilt", { seed: result.seed })}</p>
             </>
           ) : (
-            <p className="text-sm text-slate-500">The board couldn’t be rebuilt.</p>
+            <p className="text-sm text-slate-500">{t("rep.cantRebuild")}</p>
           )}
         </aside>
       </div>
 
       <section className={`${card} p-5`} aria-labelledby="students-heading">
         <h2 id="students-heading" className="text-xl font-black">
-          By student
+          {t("rep.byStudent")}
         </h2>
         <div className="mt-3 overflow-x-auto">
           <table
@@ -255,25 +262,25 @@ export function RoundReport() {
                   #
                 </th>
                 <th scope="col" className="py-2 pr-3 font-semibold">
-                  Student
+                  {t("rep.student")}
                 </th>
                 {teamMode && (
                   <th scope="col" className="py-2 pr-3 font-semibold">
-                    Team
+                    {t("rep.team")}
                   </th>
                 )}
                 <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                  Score
+                  {t("rep.score")}
                 </th>
                 <th scope="col" className="py-2 pr-3 text-right font-semibold">
-                  Found
+                  {t("rep.found")}
                 </th>
                 <th scope="col" className="py-2 pr-3 font-semibold">
-                  Completed
+                  {t("rep.completed")}
                 </th>
                 {hints && (
                   <th scope="col" className="py-2 pr-3 font-semibold">
-                    Hints
+                    {t("rep.hints")}
                   </th>
                 )}
                 {result.words.map((w) => (
@@ -295,35 +302,37 @@ export function RoundReport() {
                     {s.isBot && (
                       <span
                         className="ml-1.5 rounded bg-slate-100 px-1 text-[11px] font-bold text-slate-500"
-                        title="Simulated student"
+                        title={t("rep.simStudent")}
                       >
                         sim
                       </span>
                     )}
                   </td>
                   {teamMode && (
-                    <td className="py-2 pr-3">{s.team !== null ? TEAM_NAMES[s.team] : "—"}</td>
+                    <td className="py-2 pr-3">
+                      {s.team !== null ? t(`team.${s.team}` as MessageKey) : "—"}
+                    </td>
                   )}
                   <td className="py-2 pr-3 text-right font-bold tabular-nums">{s.score}</td>
                   <td className="py-2 pr-3 text-right tabular-nums">
                     {s.found}/{s.total}
                   </td>
                   <td className="py-2 pr-3">
-                    {s.completed ? `Yes · ${secs(s.finishedMs)}` : "No"}
+                    {s.completed ? t("rep.yesTime", { time: secs(s.finishedMs) }) : t("rep.no")}
                   </td>
                   {hints && (
                     <td className="py-2 pr-3">
                       {s.hintsUsed === 0 ? "—" : `${s.hintsUsed} · ${s.hintedWords.join(", ")}`}
                     </td>
                   )}
-                  {s.wordTimes.map((t, i) => (
+                  {s.wordTimes.map((time, i) => (
                     <td
                       key={i}
-                      className={`py-2 pr-3 text-right tabular-nums ${t === null ? "text-slate-300" : ""}`}
+                      className={`py-2 pr-3 text-right tabular-nums ${time === null ? "text-slate-300" : ""}`}
                     >
-                      {secs(t)}
+                      {secs(time)}
                       {s.halfPointWords.includes(result.words[i].id) && (
-                        <span className="ml-0.5 text-amber-600" title="Half points after a hint">
+                        <span className="ml-0.5 text-amber-600" title={t("rep.halfAfterHint")}>
                           ½
                         </span>
                       )}
@@ -334,9 +343,7 @@ export function RoundReport() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
-          Times are seconds from the start of the round to each find.
-        </p>
+        <p className="mt-2 text-xs text-slate-500">{t("rep.timesNote")}</p>
       </section>
     </div>
   );

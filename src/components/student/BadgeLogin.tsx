@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { btn, card, select } from "@/components/ui/styles";
 import { saveIdentity } from "@/hooks/useStudentRoom";
+import { useT } from "@/lib/i18n";
 import { watchSectionRoom } from "@/lib/live";
 import {
   getRosterProvider,
@@ -19,6 +20,7 @@ import {
  * open round and join it automatically.
  */
 export function BadgeLogin() {
+  const t = useT();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const badges = useMemo(() => getRosterProvider().listDemoBadges(), []);
@@ -49,18 +51,21 @@ export function BadgeLogin() {
         role="status"
       >
         <p className="text-sm font-semibold tracking-widest text-slate-500 uppercase">
-          Badge accepted
+          {t("badge.accepted")}
         </p>
         <h1 className="text-3xl font-black" data-testid="badge-name">
-          Hi, {studentDisplayName(student)}!
+          {t("badge.hi", { name: studentDisplayName(student) })}
         </h1>
         <p className="text-slate-600">
           {waiting
-            ? `${teacherDisplayName(group.teacher)} hasn’t opened a round for ${group.section.name} yet. This page will join automatically when they do.`
-            : `Finding the round for ${group.section.name}…`}
+            ? t("badge.waiting", {
+                teacher: teacherDisplayName(group.teacher),
+                section: group.section.name,
+              })
+            : t("badge.finding", { section: group.section.name })}
         </p>
         <button type="button" className={btn.ghost} onClick={() => setStudent(null)}>
-          Not you? Scan again
+          {t("badge.again")}
         </button>
       </div>
     );
@@ -69,9 +74,9 @@ export function BadgeLogin() {
   return (
     <div className={`${card} mx-auto mt-8 flex w-full max-w-lg flex-col gap-5 p-6`}>
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-black">Log in with Clever badge</h1>
+        <h1 className="text-2xl font-black">{t("join.badge")}</h1>
         <span className="rounded-full bg-amber-300 px-2 py-0.5 text-xs font-extrabold text-amber-950">
-          Simulated
+          {t("common.simulated")}
         </span>
       </div>
       <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl bg-slate-900 text-center text-white">
@@ -87,31 +92,31 @@ export function BadgeLogin() {
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
-        <p className="relative px-10 font-semibold text-white/80">
-          Hold your badge up to the camera
-        </p>
+        <p className="relative px-10 font-semibold text-white/80">{t("badge.hold")}</p>
       </div>
-      <p className="text-sm text-slate-500">
-        No camera is used in this demo. Choose a demo badge instead:
-      </p>
+      <p className="text-sm text-slate-500">{t("badge.noCamera")}</p>
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-bold">Class</span>
+        <span className="text-sm font-bold">{t("launch.class")}</span>
         <select
-          aria-label="Class"
+          aria-label={t("launch.class")}
           className={`${select} py-2`}
           value={sectionId}
           onChange={(e) => setSectionId(e.target.value)}
         >
           {badges.map((b) => (
             <option key={b.section.id} value={b.section.id}>
-              {teacherDisplayName(b.teacher)} · {b.section.name} · Period {b.section.period}
+              {t("badge.option", {
+                teacher: teacherDisplayName(b.teacher),
+                section: b.section.name,
+                period: b.section.period,
+              })}
             </option>
           ))}
         </select>
       </label>
       <ul
         className="grid max-h-72 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3"
-        aria-label="Demo badges"
+        aria-label={t("badge.list")}
       >
         {group?.students.map((s) => (
           <li key={s.id}>
@@ -137,7 +142,7 @@ export function BadgeLogin() {
         ))}
       </ul>
       <Link href="/join" className={`${btn.ghost} self-start`}>
-        ← Use a room code instead
+        {t("badge.useCode")}
       </Link>
     </div>
   );

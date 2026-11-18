@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { useHostSync } from "@/hooks/useHostSync";
+import { useProjectorSounds } from "@/hooks/useProjectorSounds";
+import { useT } from "@/lib/i18n";
 import { createRng, randomSeed, shuffle } from "@/lib/game";
 import { getRosterProvider, studentDisplayName } from "@/lib/roster";
 import { useHostReady, useHostStore } from "@/store/hostStore";
@@ -18,11 +20,13 @@ const BOT_STAGGER_MS = 140;
 
 export function ProjectorRoom() {
   const { code } = useParams<{ code: string }>();
+  const t = useT();
   const ready = useHostReady();
   useReportsReady(); // load saved reports so finished rounds are appended, not overwritten
   const room = useHostStore((s) => s.room);
   const active = ready && room?.code === code;
   useHostSync(active ? code : null);
+  useProjectorSounds(active ? room : null);
 
   // "Simulate class": bots join one by one so names visibly pop in.
   const timers = useRef<number[]>([]);
@@ -54,19 +58,17 @@ export function ProjectorRoom() {
     }
   }, []);
 
-  if (!ready) return <p className="p-8 text-xl text-white/60">Loading…</p>;
+  if (!ready) return <p className="p-8 text-xl text-white/60">{t("proj.loading")}</p>;
   if (!active || !room) {
     return (
       <div className="m-auto max-w-lg p-8 text-center">
-        <h1 className="text-4xl font-black">Room {code} isn’t open here</h1>
-        <p className="mt-3 text-xl text-white/70">
-          Rooms run in the browser that launched them. Launch a new round from the dashboard.
-        </p>
+        <h1 className="text-4xl font-black">{t("proj.notOpen", { code })}</h1>
+        <p className="mt-3 text-xl text-white/70">{t("proj.notOpenBody")}</p>
         <Link
           href="/teacher"
           className="mt-6 inline-block rounded-2xl bg-white px-6 py-3 text-xl font-black text-slate-950 focus-visible:ring-4 focus-visible:ring-sky-400/50 focus-visible:outline-none"
         >
-          Go to dashboard
+          {t("proj.goDashboard")}
         </Link>
       </div>
     );

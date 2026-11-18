@@ -3,17 +3,19 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { RoomState } from "@/lib/live";
 import { useOrigin } from "@/hooks/useOrigin";
+import { useT, type MessageKey } from "@/lib/i18n";
 import { getRosterProvider } from "@/lib/roster";
 import { useHostStore } from "@/store/hostStore";
 import { displayName } from "./format";
 
-const MODE: Record<string, string> = {
-  list: "Full word list",
-  oneAtATime: "One word at a time",
-  hidden: "Hidden words",
+const MODE: Record<string, MessageKey> = {
+  list: "proj.modeList",
+  oneAtATime: "proj.modeOne",
+  hidden: "proj.modeHidden",
 };
 
 export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): void }) {
+  const t = useT();
   const origin = useOrigin();
   const reduceMotion = useReducedMotion();
   const start = useHostStore((s) => s.start);
@@ -24,18 +26,19 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
     : undefined;
 
   return (
-    <div className="grid flex-1 gap-8 p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+    <div className="grid min-h-0 flex-1 gap-8 overflow-auto p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       <section className="flex flex-col justify-center gap-6">
         <p className="text-3xl font-bold text-white/70">
-          Go to <span className="font-black text-white">{joinUrl.replace(/^https?:\/\//, "")}</span>
+          {t("proj.goTo")}{" "}
+          <span className="font-black text-white">{joinUrl.replace(/^https?:\/\//, "")}</span>
         </p>
         <div>
           <p className="text-2xl font-bold text-white/70">
-            and enter the code{section ? ", or sign in with your Clever badge" : ""}
+            {section ? t("proj.enterCodeBadge") : t("proj.enterCode")}
           </p>
           <div
             className="mt-3 flex gap-3"
-            aria-label={`Room code ${room.code.split("").join(" ")}`}
+            aria-label={t("proj.roomCode", { code: room.code.split("").join(" ") })}
             data-testid="room-code"
           >
             {room.code.split("").map((ch, i) => (
@@ -51,25 +54,31 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
         </div>
         <dl className="flex flex-wrap gap-x-8 gap-y-2 text-xl text-white/70">
           <div>
-            <dt className="sr-only">Word set</dt>
+            <dt className="sr-only">{t("proj.wordSet")}</dt>
             <dd className="font-bold text-white">{room.round.title}</dd>
           </div>
           <div>
-            <dt className="sr-only">Display</dt>
+            <dt className="sr-only">{t("proj.display")}</dt>
             <dd>
-              {MODE[settings.display.mode]}
-              {settings.display.showClues ? " · clues" : ""}
-              {settings.display.allowHints && settings.display.mode === "hidden" ? " · hints" : ""}
+              {t(MODE[settings.display.mode])}
+              {settings.display.showClues ? t("proj.withClues") : ""}
+              {settings.display.allowHints && settings.display.mode === "hidden"
+                ? t("proj.withHints")
+                : ""}
             </dd>
           </div>
           <div>
-            <dt className="sr-only">Timer</dt>
-            <dd>{settings.duration === "untimed" ? "Untimed" : `${settings.duration} seconds`}</dd>
+            <dt className="sr-only">{t("common.timer")}</dt>
+            <dd>
+              {settings.duration === "untimed"
+                ? t("common.untimed")
+                : t("common.seconds", { n: settings.duration })}
+            </dd>
           </div>
           {settings.teamMode && (
             <div>
-              <dt className="sr-only">Teams</dt>
-              <dd>{settings.teamCount} teams</dd>
+              <dt className="sr-only">{t("proj.teams")}</dt>
+              <dd>{t("proj.teamsCount", { count: settings.teamCount })}</dd>
             </div>
           )}
         </dl>
@@ -80,14 +89,14 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
             disabled={room.players.length === 0}
             className="rounded-2xl bg-emerald-500 px-8 py-4 text-2xl font-black text-emerald-950 shadow-lg transition hover:bg-emerald-400 focus-visible:ring-4 focus-visible:ring-emerald-300/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/40"
           >
-            Start round
+            {t("common.startRound")}
           </button>
           <button
             type="button"
             onClick={onSimulate}
             className="rounded-2xl bg-white/10 px-6 py-4 text-xl font-bold hover:bg-white/20 focus-visible:ring-4 focus-visible:ring-sky-400/50 focus-visible:outline-none"
           >
-            Simulate class
+            {t("proj.simulate")}
           </button>
           <a
             href={`/join?code=${room.code}`}
@@ -95,7 +104,7 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
             rel="noopener"
             className="rounded-2xl bg-white/10 px-6 py-4 text-xl font-bold hover:bg-white/20 focus-visible:ring-4 focus-visible:ring-sky-400/50 focus-visible:outline-none"
           >
-            Open a student tab ↗
+            {t("proj.openStudentTab")}
           </a>
         </div>
       </section>
@@ -106,16 +115,18 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
       >
         <h2 id="joined-heading" className="text-3xl font-black">
           <span data-testid="player-count">{room.players.length}</span>
-          {section ? ` of ${section.students.length}` : ""}{" "}
-          {room.players.length === 1 && !section ? "student" : "students"} joined
+          {section ? t("proj.ofTotal", { total: section.students.length }) : ""}
+          {room.players.length === 1 && !section
+            ? t("proj.studentJoinedSuffix")
+            : t("proj.studentsJoinedSuffix")}
         </h2>
         {section && (
           <p className="mt-1 text-xl text-white/60">
-            {section.name} · Period {section.period}
+            {t("proj.sectionPeriod", { name: section.name, period: section.period })}
           </p>
         )}
         {room.players.length === 0 ? (
-          <p className="mt-4 text-xl text-white/50">Names will pop in here as students join.</p>
+          <p className="mt-4 text-xl text-white/50">{t("proj.namesPopIn")}</p>
         ) : (
           <ul
             className="mt-5 flex flex-wrap content-start gap-3 overflow-hidden"

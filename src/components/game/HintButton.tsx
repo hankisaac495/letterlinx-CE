@@ -1,6 +1,7 @@
 "use client";
 
 import { hintAvailability, type GameState } from "@/lib/game";
+import { useT } from "@/lib/i18n";
 
 interface HintButtonProps {
   game: GameState;
@@ -9,9 +10,11 @@ interface HintButtonProps {
 }
 
 export function HintButton({ game, now, onHint }: HintButtonProps) {
+  const t = useT();
   const a = hintAvailability(game, now);
   if (!a.enabled) return null;
-  const left = a.remaining === Infinity ? "unlimited" : `${a.remaining} left`;
+  const left =
+    a.remaining === Infinity ? t("game.hintsUnlimited") : t("game.hintsLeft", { n: a.remaining });
   const cooling = a.cooldownMs > 0 && a.remaining > 0;
   return (
     <button
@@ -27,7 +30,7 @@ export function HintButton({ game, now, onHint }: HintButtonProps) {
           d="M10 2a6 6 0 00-3.5 10.9V15a1 1 0 001 1h5a1 1 0 001-1v-2.1A6 6 0 0010 2zm-2 16h4v.5a1.5 1.5 0 01-3 0V18z"
         />
       </svg>
-      Hint · {cooling ? `${Math.ceil(a.cooldownMs / 1000)}s` : left}
+      {t("game.hint", { left: cooling ? `${Math.ceil(a.cooldownMs / 1000)}s` : left })}
     </button>
   );
 }

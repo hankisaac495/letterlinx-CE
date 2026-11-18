@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { currentWord, type GameState, type TargetWord } from "@/lib/game";
 import { wordColor } from "@/lib/game/colors";
+import { useT } from "@/lib/i18n";
 
 function Badge({ word }: { word: TargetWord }) {
   const c = wordColor(word.id);
@@ -19,21 +20,32 @@ function Badge({ word }: { word: TargetWord }) {
 
 function FoundCheck() {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4 shrink-0 text-emerald-600">
-      <path
+    <motion.svg
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      className="size-4 shrink-0 text-emerald-600"
+      initial={{ scale: 0.4, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 600, damping: 22 }}
+    >
+      <motion.path
         d="M3 8.5l3 3 7-7"
         fill="none"
         stroke="currentColor"
         strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
       />
-    </svg>
+    </motion.svg>
   );
 }
 
 /** Full list: every word (or clue) above the tiles, found ones checked off. */
 function FullList({ game, showClues }: { game: GameState; showClues: boolean }) {
+  const t = useT();
   const foundIds = new Set(game.found.map((f) => f.wordId));
   return (
     <ul
@@ -42,7 +54,7 @@ function FullList({ game, showClues }: { game: GameState; showClues: boolean }) 
           ? "flex w-full flex-col gap-1.5"
           : "flex flex-wrap justify-center gap-2 lg:justify-start"
       }
-      aria-label="Words to find"
+      aria-label={t("game.wordsToFind")}
     >
       {game.config.words.map((w) => {
         const found = foundIds.has(w.id);
@@ -70,7 +82,7 @@ function FullList({ game, showClues }: { game: GameState; showClues: boolean }) 
                 {w.display}
               </span>
             )}
-            <span className="sr-only">{found ? "found" : "not found yet"}</span>
+            <span className="sr-only">{found ? t("game.found") : t("game.notFound")}</span>
           </li>
         );
       })}
@@ -80,13 +92,14 @@ function FullList({ game, showClues }: { game: GameState; showClues: boolean }) 
 
 /** One at a time: only the current target; the next slides in when it's found. */
 function OneAtATime({ game, showClues }: { game: GameState; showClues: boolean }) {
+  const t = useT();
   const reduceMotion = useReducedMotion();
   const word = currentWord(game);
   const total = game.config.words.length;
   return (
     <div className="flex flex-col items-center gap-1">
       <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
-        Word {Math.min(game.found.length + 1, total)} of {total}
+        {t("game.wordN", { n: Math.min(game.found.length + 1, total), total })}
       </p>
       <div className="relative flex min-h-12 w-full items-center justify-center overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
@@ -117,14 +130,16 @@ function OneAtATime({ game, showClues }: { game: GameState; showClues: boolean }
               animate={{ opacity: 1 }}
               className="text-lg font-bold text-emerald-700"
             >
-              All words found!
+              {t("game.allFound")}
             </motion.p>
           )}
         </AnimatePresence>
       </div>
       {game.found.length > 0 && (
         <p className="text-xs text-slate-500">
-          Found: {game.found.map((f) => game.config.words[f.wordId].display).join(" · ")}
+          {t("game.foundList", {
+            words: game.found.map((f) => game.config.words[f.wordId].display).join(" · "),
+          })}
         </p>
       )}
     </div>
@@ -133,14 +148,15 @@ function OneAtATime({ game, showClues }: { game: GameState; showClues: boolean }
 
 /** Hidden: only a counter, plus words as they're found. */
 function Hidden({ game }: { game: GameState }) {
+  const t = useT();
   const total = game.config.words.length;
   return (
     <div className="flex flex-col items-center gap-2">
       <p className="text-lg font-extrabold text-slate-900" aria-live="polite" data-found-counter>
-        {game.found.length} of {total} found
+        {t("game.foundOf", { found: game.found.length, total })}
       </p>
       {game.found.length > 0 && (
-        <ul className="flex flex-wrap justify-center gap-2" aria-label="Words found">
+        <ul className="flex flex-wrap justify-center gap-2" aria-label={t("game.wordsFound")}>
           {game.found.map((f) => {
             const w = game.config.words[f.wordId];
             return (

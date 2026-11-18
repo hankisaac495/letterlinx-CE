@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { roundSummary, type RoundResult } from "@/lib/reports";
+import { useLocale, useT } from "@/lib/i18n";
 import { formatDate, pct } from "./format";
 
 const W = 640;
@@ -15,6 +16,8 @@ const BAR = "#2563eb";
  * Bars link to the round report; hover or focus shows a tooltip.
  */
 export function RoundsChart({ rounds }: { rounds: RoundResult[] }) {
+  const t = useT();
+  const locale = useLocale();
   const [active, setActive] = useState<number | null>(null);
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
@@ -27,14 +30,12 @@ export function RoundsChart({ rounds }: { rounds: RoundResult[] }) {
 
   return (
     <figure className="relative">
-      <figcaption className="text-sm font-bold text-slate-700">
-        Words found by the class, per round
-      </figcaption>
+      <figcaption className="text-sm font-bold text-slate-700">{t("chart.title")}</figcaption>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="mt-2 h-auto w-full"
         role="img"
-        aria-label="Bar chart of words found per round. The table below lists the same data."
+        aria-label={t("chart.aria")}
       >
         {[0, 0.5, 1].map((t) => (
           <g key={t}>
@@ -75,7 +76,11 @@ export function RoundsChart({ rounds }: { rounds: RoundResult[] }) {
             <g key={r.id}>
               <Link
                 href={`/teacher/reports/${r.id}`}
-                aria-label={`${formatDate(r.startedAt)}: ${r.title}, ${pct(s.wordsFoundShare)} of words found`}
+                aria-label={t("chart.bar", {
+                  date: formatDate(r.startedAt, false, locale),
+                  title: r.title,
+                  pct: pct(s.wordsFoundShare),
+                })}
                 onMouseEnter={() => setActive(i)}
                 onMouseLeave={() => setActive(null)}
                 onFocus={() => setActive(i)}
@@ -93,7 +98,7 @@ export function RoundsChart({ rounds }: { rounds: RoundResult[] }) {
               </Link>
               {i % labelEvery === 0 && (
                 <text x={cx} y={H - 8} textAnchor="middle" fontSize={11} fill="#64748b">
-                  {formatDate(r.startedAt)}
+                  {formatDate(r.startedAt, false, locale)}
                 </text>
               )}
             </g>
@@ -110,10 +115,8 @@ export function RoundsChart({ rounds }: { rounds: RoundResult[] }) {
           }}
         >
           <p className="font-bold">{hover.r.title}</p>
-          <p className="text-white/80">{formatDate(hover.r.startedAt, true)}</p>
-          <p>
-            {pct(hover.s.wordsFoundShare)} of words found · {hover.s.players} students
-          </p>
+          <p className="text-white/80">{formatDate(hover.r.startedAt, true, locale)}</p>
+          <p>{t("chart.tip", { pct: pct(hover.s.wordsFoundShare), count: hover.s.players })}</p>
         </div>
       )}
     </figure>

@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Projector · LetterLinx Classroom Ed
 
 export default function ProjectorPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-950 text-white">
+    <div className="flex h-dvh flex-col overflow-hidden bg-slate-950 text-white">
       <Suspense fallback={<p className="p-8 text-xl text-white/60">Loading…</p>}>
         <ProjectorRoom />
       </Suspense>

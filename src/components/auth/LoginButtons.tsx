@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { useT } from "@/lib/i18n";
 import { getRosterProvider, teacherDisplayName } from "@/lib/roster";
 import { useSessionReady, useSessionStore } from "@/store/sessionStore";
 
@@ -23,6 +24,7 @@ export function ProviderMark({ provider }: { provider: "clever" | "google" }) {
 }
 
 export function LoginButtons() {
+  const t = useT();
   const ready = useSessionReady();
   const session = useSessionStore((s) => s.session);
   const teacher = useMemo(
@@ -42,9 +44,11 @@ export function LoginButtons() {
           href="/teacher"
           className={`${loginBtn} bg-blue-700 text-white hover:bg-blue-600 focus-visible:ring-blue-200`}
         >
-          Go to dashboard
+          {t("auth.goDashboard")}
         </Link>
-        <p className="text-sm text-slate-500">Signed in as {teacherDisplayName(teacher)} (demo)</p>
+        <p className="text-sm text-slate-500">
+          {t("auth.signedInAs", { name: teacherDisplayName(teacher) })}
+        </p>
       </div>
     );
   }
@@ -56,14 +60,14 @@ export function LoginButtons() {
         className={`${loginBtn} bg-[#1464ff] text-white hover:bg-[#2a74ff] focus-visible:ring-blue-200`}
       >
         <ProviderMark provider="clever" />
-        Log in with Clever
+        {t("auth.loginClever")}
       </Link>
       <Link
         href="/auth/google"
         className={`${loginBtn} bg-white text-slate-800 ring-1 ring-slate-300 hover:bg-slate-50 focus-visible:ring-blue-200`}
       >
         <ProviderMark provider="google" />
-        Log in with Google Classroom
+        {t("auth.loginGoogle")}
       </Link>
     </div>
   );

@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { standings, teamStandings, TEAM_NAMES, type RoomState } from "@/lib/live";
+import { useT, type MessageKey } from "@/lib/i18n";
+import { standings, teamStandings, type RoomState } from "@/lib/live";
 import { displayName } from "./format";
 
 const TEAM_COLORS = ["#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#F0E442", "#D55E00"];
@@ -19,6 +20,7 @@ export function Leaderboard({
   limit?: number;
   big?: boolean;
 }) {
+  const t = useT();
   const reduceMotion = useReducedMotion();
   const total = room.round.words.length;
   const transition = reduceMotion
@@ -27,12 +29,16 @@ export function Leaderboard({
 
   if (room.round.settings.teamMode) {
     const teams = teamStandings(room);
-    const max = Math.max(1, ...teams.map((t) => t.score));
+    const max = Math.max(1, ...teams.map((tm) => tm.score));
     return (
-      <ol className="flex flex-col gap-2" aria-label="Team standings" data-testid="team-standings">
-        {teams.map((t, i) => (
+      <ol
+        className="flex flex-col gap-2"
+        aria-label={t("proj.teamStandings")}
+        data-testid="team-standings"
+      >
+        {teams.map((tm, i) => (
           <motion.li
-            key={t.team}
+            key={tm.team}
             layout
             transition={transition}
             className="rounded-xl bg-white/5 px-4 py-2.5"
@@ -43,18 +49,20 @@ export function Leaderboard({
               <span className="w-8 text-white/50 tabular-nums">{i + 1}</span>
               <span
                 className="size-4 rounded-full"
-                style={{ backgroundColor: teamColor(t.team) }}
+                style={{ backgroundColor: teamColor(tm.team) }}
                 aria-hidden="true"
               />
-              <span className="flex-1 truncate">{TEAM_NAMES[t.team]}</span>
-              <span className="text-base font-semibold text-white/60">{t.members} players</span>
-              <span className="w-24 text-right tabular-nums">{t.score}</span>
+              <span className="flex-1 truncate">{t(`team.${tm.team}` as MessageKey)}</span>
+              <span className="text-base font-semibold text-white/60">
+                {t("proj.players", { count: tm.members })}
+              </span>
+              <span className="w-24 text-right tabular-nums">{tm.score}</span>
             </div>
             <div className="mt-2 h-2 rounded-full bg-white/10">
               <motion.div
                 className="h-full rounded-full"
-                style={{ backgroundColor: teamColor(t.team) }}
-                animate={{ width: `${(t.score / max) * 100}%` }}
+                style={{ backgroundColor: teamColor(tm.team) }}
+                animate={{ width: `${(tm.score / max) * 100}%` }}
                 transition={transition}
               />
             </div>
@@ -65,9 +73,13 @@ export function Leaderboard({
   }
 
   const rows = standings(room).slice(0, limit);
-  if (rows.length === 0) return <p className="text-xl text-white/60">No players yet.</p>;
+  if (rows.length === 0) return <p className="text-xl text-white/60">{t("proj.noPlayers")}</p>;
   return (
-    <ol className="flex flex-col gap-1.5" aria-label="Leaderboard" data-testid="leaderboard">
+    <ol
+      className="flex flex-col gap-1.5"
+      aria-label={t("proj.leaderboard")}
+      data-testid="leaderboard"
+    >
       {rows.map((s) => (
         <motion.li
           key={s.playerId}

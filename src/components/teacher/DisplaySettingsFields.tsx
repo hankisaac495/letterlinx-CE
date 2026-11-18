@@ -3,22 +3,23 @@
 import { useId } from "react";
 import type { DisplaySettings, HintSettings, WordDisplayMode } from "@/lib/game";
 import { check, select } from "@/components/ui/styles";
+import { useT, type MessageKey } from "@/lib/i18n";
 
-const MODES: { value: WordDisplayMode; label: string; help: string }[] = [
+const MODES: { value: WordDisplayMode; label: MessageKey; help: MessageKey }[] = [
   {
     value: "list",
-    label: "Show the full list",
-    help: "All words appear together above the tiles.",
+    label: "display.list",
+    help: "display.listHelp",
   },
   {
     value: "oneAtATime",
-    label: "Show one at a time",
-    help: "One word appears above the tiles; the next appears only after it's found.",
+    label: "display.one",
+    help: "display.oneHelp",
   },
   {
     value: "hidden",
-    label: "Hide the words",
-    help: "No words are shown. Students search the board on their own.",
+    label: "display.hidden",
+    help: "display.hiddenHelp",
   },
 ];
 
@@ -30,6 +31,7 @@ interface Props {
 
 /** The three display radios, the clue checkbox, and Allow hints + hint settings. */
 export function DisplaySettingsFields({ value, onChange, error }: Props) {
+  const t = useT();
   const id = useId();
   const setMode = (mode: WordDisplayMode) =>
     onChange({
@@ -52,15 +54,15 @@ export function DisplaySettingsFields({ value, onChange, error }: Props) {
         onChange={() => setMode(m.value)}
       />
       <span>
-        <span className="font-bold">{m.label}</span>
-        <span className="block text-sm text-slate-500">{m.help}</span>
+        <span className="font-bold">{t(m.label)}</span>
+        <span className="block text-sm text-slate-500">{t(m.help)}</span>
       </span>
     </label>
   );
 
   return (
     <fieldset className="flex flex-col gap-1" aria-describedby={error ? `${id}-error` : undefined}>
-      <legend className="mb-1 text-sm font-bold text-slate-900">Word display</legend>
+      <legend className="mb-1 text-sm font-bold text-slate-900">{t("display.legend")}</legend>
       {radio(MODES[0])}
       {radio(MODES[1])}
       <label
@@ -77,7 +79,7 @@ export function DisplaySettingsFields({ value, onChange, error }: Props) {
           checked={value.showClues}
           onChange={(e) => onChange({ ...value, showClues: e.target.checked })}
         />
-        Show clues instead of words
+        {t("display.showClues")}
       </label>
       {radio(MODES[2])}
       {value.mode === "hidden" && (
@@ -89,12 +91,12 @@ export function DisplaySettingsFields({ value, onChange, error }: Props) {
               checked={value.allowHints}
               onChange={(e) => onChange({ ...value, allowHints: e.target.checked })}
             />
-            Allow hints
+            {t("display.allowHints")}
           </label>
           {value.allowHints && (
             <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <label className="flex flex-col gap-1">
-                <span className="font-semibold">Hints per student</span>
+                <span className="font-semibold">{t("display.hintsPerStudent")}</span>
                 <select
                   className={select}
                   value={String(value.hints.perStudent)}
@@ -109,13 +111,13 @@ export function DisplaySettingsFields({ value, onChange, error }: Props) {
                 >
                   {["1", "2", "3", "5", "unlimited"].map((v) => (
                     <option key={v} value={v}>
-                      {v === "unlimited" ? "Unlimited" : v}
+                      {v === "unlimited" ? t("display.unlimited") : v}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="font-semibold">Cooldown</span>
+                <span className="font-semibold">{t("display.cooldown")}</span>
                 <select
                   className={select}
                   value={value.hints.cooldownSeconds}
@@ -125,20 +127,20 @@ export function DisplaySettingsFields({ value, onChange, error }: Props) {
                 >
                   {[0, 10, 20, 30].map((v) => (
                     <option key={v} value={v}>
-                      {v === 0 ? "None" : `${v} seconds`}
+                      {v === 0 ? t("display.none") : t("common.seconds", { n: v })}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="flex flex-col gap-1">
-                <span className="font-semibold">Point cost</span>
+                <span className="font-semibold">{t("display.cost")}</span>
                 <select
                   className={select}
                   value={value.hints.cost}
                   onChange={(e) => setHints({ cost: e.target.value as "none" | "halfPoints" })}
                 >
-                  <option value="none">No cost</option>
-                  <option value="halfPoints">Half points within 15 s</option>
+                  <option value="none">{t("display.noCost")}</option>
+                  <option value="halfPoints">{t("display.halfPoints")}</option>
                 </select>
               </label>
             </div>

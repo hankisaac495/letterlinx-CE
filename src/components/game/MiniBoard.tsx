@@ -14,6 +14,8 @@ interface MiniBoardProps {
   tileColors?: ReadonlyMap<number, { fill: string; ink: string }>;
   /** Purely visual: no img role (the parent describes it). */
   decorative?: boolean;
+  /** Accessible name (defaults to an English description). */
+  label?: string;
   children?: React.ReactNode;
 }
 
@@ -40,6 +42,7 @@ export function MiniBoard({
   letterClassName = "text-[8cqw]",
   tileColors,
   decorative,
+  label,
   children,
 }: MiniBoardProps) {
   const colorOf = new Map<number, number>();
@@ -56,7 +59,9 @@ export function MiniBoard({
         style={{ gridTemplateColumns: `repeat(${board.cols}, minmax(0, 1fr))` }}
         role={decorative ? undefined : "img"}
         aria-label={
-          decorative ? undefined : `Board preview: ${board.rows} rows of ${board.cols} letters`
+          decorative
+            ? undefined
+            : (label ?? `Board preview: ${board.rows} rows of ${board.cols} letters`)
         }
         data-testid={decorative ? undefined : "mini-board"}
         data-tiles={board.tiles.join("")}

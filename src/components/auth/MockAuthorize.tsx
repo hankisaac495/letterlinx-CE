@@ -5,20 +5,18 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { btn, card } from "@/components/ui/styles";
+import { useT } from "@/lib/i18n";
 import { getRosterProvider, teacherDisplayName } from "@/lib/roster";
 import { PROVIDER_LABEL, useSessionStore, type AuthProvider } from "@/store/sessionStore";
 import { ProviderMark } from "./LoginButtons";
 
-const SCOPES = [
-  "Your name and school",
-  "Your classes (sections) and periods",
-  "Student first names and last initials in your classes",
-];
+const SCOPES = ["auth.scope.name", "auth.scope.sections", "auth.scope.students"] as const;
 
 /**
  * Simulated OAuth consent + demo account picker. Nothing leaves the browser.
  */
 export function MockAuthorize() {
+  const t = useT();
   const { provider: raw } = useParams<{ provider: string }>();
   const provider: AuthProvider = raw === "google" ? "google" : "clever";
   const router = useRouter();
@@ -45,7 +43,7 @@ export function MockAuthorize() {
           <ProviderMark provider={provider} />
           <p className="font-black">{label}</p>
           <span className="ml-auto rounded-full bg-amber-300 px-2 py-0.5 text-xs font-extrabold text-amber-950">
-            Simulated
+            {t("common.simulated")}
           </span>
         </div>
         <AnimatePresence mode="wait">
@@ -58,30 +56,24 @@ export function MockAuthorize() {
               transition={{ duration: 0.2 }}
               className="flex flex-col gap-5 p-6"
             >
-              <h1 className="text-xl font-black">
-                LetterLinx Classroom Edition would like to access your rosters
-              </h1>
+              <h1 className="text-xl font-black">{t("auth.consentTitle")}</h1>
               <div>
-                <p className="text-sm font-bold">
-                  This will allow LetterLinx Classroom Edition to see:
-                </p>
+                <p className="text-sm font-bold">{t("auth.consentLead")}</p>
                 <ul className="mt-2 flex flex-col gap-1.5 text-sm text-slate-700">
                   {SCOPES.map((s) => (
                     <li key={s} className="flex gap-2">
                       <span aria-hidden="true" className="text-emerald-600">
                         ✓
                       </span>
-                      {s}
+                      {t(s)}
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 text-xs text-slate-500">
-                  No student emails or passwords are shared.
-                </p>
+                <p className="mt-3 text-xs text-slate-500">{t("auth.noEmails")}</p>
               </div>
               <div className="flex justify-end gap-2">
                 <Link href="/" className={btn.secondary}>
-                  Cancel
+                  {t("common.cancel")}
                 </Link>
                 <button
                   type="button"
@@ -89,7 +81,7 @@ export function MockAuthorize() {
                   onClick={() => setStep("account")}
                   autoFocus
                 >
-                  Allow
+                  {t("auth.allow")}
                 </button>
               </div>
             </motion.div>
@@ -102,33 +94,34 @@ export function MockAuthorize() {
               className="flex flex-col gap-4 p-6"
             >
               <div>
-                <h1 className="text-xl font-black">Choose a demo teacher</h1>
+                <h1 className="text-xl font-black">{t("auth.chooseTeacher")}</h1>
                 <p className="mt-1 text-sm text-slate-500">
                   {roster.data.school.name} · {roster.data.district.name}
                 </p>
               </div>
               <ul className="flex flex-col gap-2">
-                {teachers.map((t) => {
-                  const count = roster.data.sections.filter((s) => s.teacher === t.id).length;
+                {teachers.map((teacher) => {
+                  const count = roster.data.sections.filter((s) => s.teacher === teacher.id).length;
                   return (
-                    <li key={t.id}>
+                    <li key={teacher.id}>
                       <button
                         type="button"
                         disabled={step === "signingIn"}
-                        onClick={() => choose(t.id)}
+                        onClick={() => choose(teacher.id)}
                         className="flex w-full items-center gap-3 rounded-xl p-3 text-left ring-1 ring-slate-200 transition hover:bg-slate-50 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none disabled:opacity-50"
                       >
                         <span
                           aria-hidden="true"
                           className="flex size-10 items-center justify-center rounded-full bg-blue-100 font-black text-blue-800"
                         >
-                          {t.name.first[0]}
-                          {t.name.last[0]}
+                          {teacher.name.first[0]}
+                          {teacher.name.last[0]}
                         </span>
                         <span className="flex-1">
-                          <span className="block font-bold">{teacherDisplayName(t)}</span>
+                          <span className="block font-bold">{teacherDisplayName(teacher)}</span>
                           <span className="text-sm text-slate-500">
-                            {t.name.first} {t.name.last} · {count} classes
+                            {teacher.name.first} {teacher.name.last} ·{" "}
+                            {t("auth.classesCount", { count })}
                           </span>
                         </span>
                       </button>
@@ -138,7 +131,7 @@ export function MockAuthorize() {
               </ul>
               {step === "signingIn" && (
                 <p role="status" className="text-center text-sm font-semibold text-slate-600">
-                  Signing in…
+                  {t("auth.signingIn")}
                 </p>
               )}
             </motion.div>
@@ -146,7 +139,7 @@ export function MockAuthorize() {
         </AnimatePresence>
       </div>
       <p className="mt-4 text-center text-xs text-slate-500">
-        This is a demo. No real {label} account is used and no data leaves your browser.
+        {t("auth.demoNote", { provider: label })}
       </p>
     </div>
   );

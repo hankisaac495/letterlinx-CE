@@ -36,6 +36,16 @@ Open http://localhost:3000.
 Until Phase 9, live rounds sync between tabs of the **same browser** (BroadcastChannel, with a
 localStorage fallback). The projector tab runs the round, so keep it open.
 
+### Sound, language and accessibility
+
+- Sound effects are synthesised with the Web Audio API (`src/lib/audio`), so there are no audio files.
+  Students start muted and the projector starts with sound on; every game view has a mute toggle and the
+  projector has a volume slider.
+- The interface is available in **English and Spanish** (switch in the banner or the projector bar).
+  All strings live in `src/lib/i18n/messages.ts` with both languages side by side.
+- Animations respect `prefers-reduced-motion`; found words use a colour-blind-safe palette plus numbered
+  badges; projector letters are at least 6% of screen height.
+
 ### Rostering
 
 All roster access goes through `RosterProvider` (`src/lib/roster`). `MockCleverProvider` serves a seeded,

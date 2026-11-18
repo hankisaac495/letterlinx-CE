@@ -22,6 +22,8 @@ interface GameBoardProps {
   disabled?: boolean;
   onSubmit(path: number[]): SubmitReaction;
   onSelectionChange?(path: number[]): void;
+  /** Accessible name for the board. */
+  label?: string;
 }
 
 interface Point {
@@ -46,6 +48,7 @@ export function GameBoard({
   disabled,
   onSubmit,
   onSelectionChange,
+  label = "Letter board. Drag across neighbouring letters to spell a word.",
 }: GameBoardProps) {
   const reduceMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -156,7 +159,7 @@ export function GameBoard({
       <div
         ref={containerRef}
         role="application"
-        aria-label="Letter board. Drag across neighbouring letters to spell a word."
+        aria-label={label}
         className="relative grid touch-none gap-[1.6cqw] rounded-[4cqw] bg-slate-900 p-[2.4cqw] select-none"
         style={{ gridTemplateColumns: `repeat(${board.cols}, minmax(0, 1fr))` }}
         onPointerDown={onPointerDown}

@@ -1,3 +1,4 @@
+import type { Translate } from "@/lib/i18n";
 import { nicknameFor, type Player, type RoomState } from "@/lib/live";
 
 export function displayName(room: RoomState, player: Pick<Player, "id" | "name">): string {
@@ -11,10 +12,10 @@ export function canRevealWords(room: RoomState): boolean {
   return mode !== "hidden" && !showClues;
 }
 
-export function wordLabel(room: RoomState, wordId: number): string {
+export function wordLabel(room: RoomState, wordId: number, t: Translate): string {
   const word = room.round.words.find((w) => w.id === wordId);
   if (!word) return "";
-  return canRevealWords(room) ? word.display : `word ${wordId + 1}`;
+  return canRevealWords(room) ? word.display : t("proj.wordLower", { n: wordId + 1 });
 }
 
 export function formatMs(ms: number): string {

@@ -18,6 +18,8 @@ import { useTeacher } from "@/hooks/useTeacher";
 import type { Section } from "@/lib/roster";
 import { useHostReady, useHostStore } from "@/store/hostStore";
 import { useWordSetsReady, useWordSetStore, type WordSet } from "@/store/wordSetStore";
+import { useT } from "@/lib/i18n";
+import { generationMessage, issueMessage } from "@/lib/i18n/game";
 import { DisplaySettingsFields } from "./DisplaySettingsFields";
 
 function LaunchForm({
@@ -34,6 +36,7 @@ function LaunchForm({
   initialSectionId: string | null;
 }) {
   const [sectionId, setSectionId] = useState<string>(initialSectionId ?? sections[0]?.id ?? "");
+  const t = useT();
   const router = useRouter();
   const openRoom = useHostStore((s) => s.open);
   const existingRoom = useHostStore((s) => s.room);
@@ -49,9 +52,11 @@ function LaunchForm({
   );
   const problem = prepared.ok
     ? null
-    : (prepared.generation?.message ??
-      prepared.validation?.errors[0]?.message ??
-      "This word set can't be played yet.");
+    : prepared.generation
+      ? generationMessage(t, prepared.generation)
+      : prepared.validation?.errors[0]
+        ? issueMessage(t, prepared.validation.errors[0])
+        : t("launch.cantPlay");
 
   const launch = () => {
     if (!prepared.ok) return;
@@ -77,19 +82,18 @@ function LaunchForm({
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6">
       <div>
         <Link href="/teacher" className="text-sm font-semibold text-blue-700 hover:underline">
-          ← Dashboard
+          {t("editor.backDashboard")}
         </Link>
-        <h1 className="mt-1 text-3xl font-black tracking-tight">Launch a live round</h1>
+        <h1 className="mt-1 text-3xl font-black tracking-tight">{t("launch.title")}</h1>
       </div>
 
       {existingRoom && existingRoom.phase !== "ended" && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm ring-1 ring-amber-200">
           <p className="text-amber-900">
-            Round <strong className="font-mono">{existingRoom.code}</strong> (
-            {existingRoom.round.title}) is still open. Launching a new round closes it.
+            {t("launch.stillOpen", { code: existingRoom.code, title: existingRoom.round.title })}
           </p>
           <Link href={`/projector/${existingRoom.code}`} className={btn.ghost}>
-            Return to it
+            {t("launch.returnTo")}
           </Link>
         </div>
       )}
@@ -98,26 +102,28 @@ function LaunchForm({
         <div className="flex flex-col gap-6">
           <section className={`${card} grid gap-4 p-5 sm:grid-cols-2`}>
             <label className="flex flex-col gap-1">
-              <span className="text-sm font-bold">Class</span>
+              <span className="text-sm font-bold">{t("launch.class")}</span>
               <select
-                aria-label="Class"
+                aria-label={t("launch.class")}
                 className={`${select} py-2`}
                 value={sectionId}
                 onChange={(e) => setSectionId(e.target.value)}
               >
                 {sections.map((sec) => (
                   <option key={sec.id} value={sec.id}>
-                    {sec.name} · Period {sec.period} ({sec.students.length})
+                    {t("launch.classOption", {
+                      name: sec.name,
+                      period: sec.period,
+                      count: sec.students.length,
+                    })}
                   </option>
                 ))}
-                <option value="">No class · anyone with the code types a name</option>
+                <option value="">{t("launch.noClass")}</option>
               </select>
-              <span className="text-xs text-slate-500">
-                Students pick their name from this class list, or sign in with their Clever badge.
-              </span>
+              <span className="text-xs text-slate-500">{t("launch.classHelp")}</span>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-sm font-bold">Word set</span>
+              <span className="text-sm font-bold">{t("common.wordSet")}</span>
               <select
                 className={`${select} py-2`}
                 value={wordSet.id}
@@ -138,14 +144,12 @@ function LaunchForm({
 
           <section className={`${card} p-5`}>
             <DisplaySettingsFields value={display} onChange={setDisplay} />
-            <p className="mt-2 text-xs text-slate-500">
-              Starts from the word set’s saved setting. Changes here apply to this round only.
-            </p>
+            <p className="mt-2 text-xs text-slate-500">{t("launch.overrideHelp")}</p>
           </section>
 
           <section className={`${card} grid gap-5 p-5 sm:grid-cols-2`}>
             <label className="flex flex-col gap-1">
-              <span className="text-sm font-bold">Timer</span>
+              <span className="text-sm font-bold">{t("common.timer")}</span>
               <select
                 className={`${select} py-2`}
                 value={String(duration)}
@@ -159,14 +163,14 @@ function LaunchForm({
               >
                 {ROUND_DURATIONS.map((d) => (
                   <option key={d} value={d}>
-                    {d} seconds
+                    {t("common.seconds", { n: d })}
                   </option>
                 ))}
-                <option value="untimed">Untimed (ends when everyone finishes)</option>
+                <option value="untimed">{t("launch.untimedLong")}</option>
               </select>
             </label>
             <fieldset className="flex flex-col gap-2">
-              <legend className="text-sm font-bold">Teams</legend>
+              <legend className="text-sm font-bold">{t("launch.teams")}</legend>
               <label className="flex items-center gap-2 font-semibold">
                 <input
                   type="checkbox"
@@ -174,11 +178,11 @@ function LaunchForm({
                   checked={teamMode}
                   onChange={(e) => setTeamMode(e.target.checked)}
                 />
-                Team mode (auto-split students)
+                {t("launch.teamMode")}
               </label>
               {teamMode && (
                 <label className="flex items-center gap-2 text-sm">
-                  Number of teams
+                  {t("launch.teamCount")}
                   <select
                     className={select}
                     value={teamCount}
@@ -200,18 +204,22 @@ function LaunchForm({
 
         <aside className={`${card} flex h-fit flex-col gap-3 self-start p-5 lg:sticky lg:top-4`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-black">Board</h2>
+            <h2 className="text-lg font-black">{t("launch.board")}</h2>
             <button
               type="button"
               className={btn.ghost}
               onClick={() => setSeed(randomSeed())}
               disabled={!prepared.ok}
             >
-              Shuffle board
+              {t("editor.shuffle")}
             </button>
           </div>
           {prepared.ok ? (
-            <MiniBoard board={prepared.board} showWords />
+            <MiniBoard
+              label={t("board.preview", { rows: 9, cols: 6 })}
+              board={prepared.board}
+              showWords
+            />
           ) : (
             <p
               role="alert"
@@ -219,7 +227,7 @@ function LaunchForm({
             >
               {problem}{" "}
               <Link href={`/teacher/word-sets/${wordSet.id}`} className="underline">
-                Edit word set
+                {t("launch.editSet")}
               </Link>
             </p>
           )}
@@ -229,11 +237,9 @@ function LaunchForm({
             disabled={!prepared.ok}
             onClick={launch}
           >
-            Open projector
+            {t("launch.open")}
           </button>
-          <p className="text-xs text-slate-500">
-            Opens the projector view with a room code. Students join at <strong>/join</strong>.
-          </p>
+          <p className="text-xs text-slate-500">{t("launch.openHelp")}</p>
         </aside>
       </div>
     </div>
@@ -241,20 +247,22 @@ function LaunchForm({
 }
 
 export function LaunchRound() {
+  const t = useT();
   const params = useSearchParams();
   const setsReady = useWordSetsReady();
   const hostReady = useHostReady();
   const wordSets = useWordSetStore((s) => s.wordSets);
   const { teacher } = useTeacher();
   const { data: sections } = useSections(teacher?.id ?? null);
-  if (!setsReady || !hostReady || !sections) return <p className="p-6 text-slate-500">Loading…</p>;
+  if (!setsReady || !hostReady || !sections)
+    return <p className="p-6 text-slate-500">{t("common.loading")}</p>;
   const wordSet = wordSets.find((w) => w.id === params.get("set")) ?? wordSets[0];
   if (!wordSet) {
     return (
       <div className="mx-auto max-w-md p-8 text-center">
-        <h1 className="text-2xl font-black">Create a word set first</h1>
+        <h1 className="text-2xl font-black">{t("launch.createFirst")}</h1>
         <Link href="/teacher/word-sets/new" className={`${btn.primary} mt-5`}>
-          New word set
+          {t("editor.newTitle")}
         </Link>
       </div>
     );

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { AppProviders } from "@/components/AppProviders";
 import "./globals.css";
 
 // Nunito, self-hosted from @fontsource-variable/nunito so builds never fetch fonts.
@@ -25,7 +26,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${nunito.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

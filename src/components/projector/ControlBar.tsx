@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { RoomState } from "@/lib/live";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { SoundToggle } from "@/components/ui/SoundToggle";
+import { useT } from "@/lib/i18n";
 import { useHostStore } from "@/store/hostStore";
 
 const base =
-  "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400/50 disabled:opacity-40";
+  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[13px] font-bold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-400/50 disabled:opacity-40";
 const quiet = `${base} bg-white/10 text-white hover:bg-white/20`;
 const on = `${base} bg-sky-300 text-slate-950 hover:bg-sky-200`;
 
@@ -27,6 +30,7 @@ function Toggle({
 }
 
 export function ControlBar({ room, onSimulate }: { room: RoomState; onSimulate(): void }) {
+  const t = useT();
   const { setView, pause, resume, end } = useHostStore.getState();
   const [confirmEnd, setConfirmEnd] = useState(false);
   const live = room.phase === "countdown" || room.phase === "playing" || room.phase === "paused";
@@ -43,7 +47,7 @@ export function ControlBar({ room, onSimulate }: { room: RoomState; onSimulate()
   };
 
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-950/80 px-5 py-2.5">
+    <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-white/10 bg-slate-950/80 px-5 py-2">
       <div className="flex min-w-0 items-center gap-3">
         <span className="font-black tracking-tight">LetterLinx</span>
         <span className="truncate text-white/60">{room.round.title}</span>
@@ -53,24 +57,26 @@ export function ControlBar({ room, onSimulate }: { room: RoomState; onSimulate()
         >
           {room.code}
         </span>
-        <span className="hidden text-xs text-amber-200/80 md:inline">Prototype · demo data</span>
+        <span className="hidden text-xs text-amber-200/80 2xl:inline">{t("proj.demo")}</span>
+        <SoundToggle context="projector" dark />
+        <LanguageToggle dark />
       </div>
-      <nav aria-label="Round controls" className="flex flex-wrap items-center gap-2">
+      <nav aria-label={t("proj.controls")} className="flex flex-wrap items-center gap-1.5">
         <Toggle
           pressed={room.view.hideNames}
           onClick={() => setView({ hideNames: !room.view.hideNames })}
         >
-          Hide names
+          {t("proj.hideNames")}
         </Toggle>
         <Toggle
           pressed={room.view.hideLeaderboard}
           onClick={() => setView({ hideLeaderboard: !room.view.hideLeaderboard })}
         >
-          Hide leaderboard
+          {t("proj.hideLeaderboard")}
         </Toggle>
         {room.phase !== "ended" && (
           <button type="button" className={quiet} onClick={onSimulate}>
-            Simulate class
+            {t("proj.simulate")}
           </button>
         )}
         {(room.phase === "playing" || room.phase === "paused") && (
@@ -79,7 +85,7 @@ export function ControlBar({ room, onSimulate }: { room: RoomState; onSimulate()
             className={quiet}
             onClick={room.phase === "paused" ? resume : pause}
           >
-            {room.phase === "paused" ? "Resume" : "Pause"}
+            {room.phase === "paused" ? t("proj.resume") : t("proj.pause")}
           </button>
         )}
         {live &&
@@ -92,19 +98,19 @@ export function ControlBar({ room, onSimulate }: { room: RoomState; onSimulate()
                 end();
               }}
             >
-              Confirm end round
+              {t("proj.confirmEnd")}
             </button>
           ) : (
             <button type="button" className={quiet} onClick={() => setConfirmEnd(true)}>
-              End round
+              {t("proj.endRound")}
             </button>
           ))}
         <button type="button" className={quiet} onClick={fullscreen}>
-          Full screen
+          {t("proj.fullScreen")}
         </button>
         {!live && (
           <Link href="/teacher" className={quiet}>
-            Dashboard
+            {t("proj.dashboard")}
           </Link>
         )}
       </nav>
