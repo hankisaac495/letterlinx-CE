@@ -23,6 +23,16 @@ npm run dev
 
 Open http://localhost:3000.
 
+## Try a live round (one computer)
+
+1. Open **/teacher**, click **Launch** on a word set, then **Open projector**.
+2. On the projector, click **Open a student tab** (or open `/join` in another tab) and join with the room code.
+   Each browser tab is one student.
+3. Click **Simulate class** to add pretend students who find words at different speeds, then **Start round**.
+
+Until Phase 9, live rounds sync between tabs of the **same browser** (BroadcastChannel, with a
+localStorage fallback). The projector tab runs the round, so keep it open.
+
 ## Scripts
 
 | Command                           | What it does                                                                 |

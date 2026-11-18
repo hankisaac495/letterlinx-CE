@@ -8,10 +8,20 @@ interface MiniBoardProps {
   /** Order of word ids matching board.placements (defaults to placement index). */
   wordIdFor?(word: string): number;
   className?: string;
+  /** Tailwind font-size class for letters (container-relative). */
+  letterClassName?: string;
+  children?: React.ReactNode;
 }
 
 /** Static, non-interactive board for previews and reports. */
-export function MiniBoard({ board, showWords, wordIdFor, className = "" }: MiniBoardProps) {
+export function MiniBoard({
+  board,
+  showWords,
+  wordIdFor,
+  className = "",
+  letterClassName = "text-[8cqw]",
+  children,
+}: MiniBoardProps) {
   const colorOf = new Map<number, number>();
   if (showWords) {
     board.placements.forEach((p, i) => {
@@ -22,7 +32,7 @@ export function MiniBoard({ board, showWords, wordIdFor, className = "" }: MiniB
   return (
     <div className={`@container ${className}`}>
       <div
-        className="grid gap-[1.5cqw] rounded-[4cqw] bg-slate-900 p-[2.4cqw]"
+        className="relative grid gap-[1.5cqw] rounded-[4cqw] bg-slate-900 p-[2.4cqw]"
         style={{ gridTemplateColumns: `repeat(${board.cols}, minmax(0, 1fr))` }}
         role="img"
         aria-label={`Board preview: ${board.rows} rows of ${board.cols} letters`}
@@ -35,13 +45,14 @@ export function MiniBoard({ board, showWords, wordIdFor, className = "" }: MiniB
           return (
             <div
               key={i}
-              className="flex aspect-square items-center justify-center rounded-[2cqw] text-[8cqw] leading-none font-black"
+              className={`flex aspect-square items-center justify-center rounded-[2cqw] leading-none font-black ${letterClassName}`}
               style={{ backgroundColor: c?.fill ?? "#ffffff", color: c?.ink ?? "#0f172a" }}
             >
               {letter}
             </div>
           );
         })}
+        {children}
       </div>
     </div>
   );

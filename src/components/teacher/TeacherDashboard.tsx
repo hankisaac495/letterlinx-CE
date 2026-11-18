@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { WordDisplayMode } from "@/lib/game";
 import { btn, card } from "@/components/ui/styles";
+import { useHostReady, useHostStore } from "@/store/hostStore";
 import { useWordSetsReady, useWordSetStore, type WordSet } from "@/store/wordSetStore";
 import { DeleteWordSetButton } from "./DeleteWordSetButton";
 
@@ -46,6 +47,12 @@ function WordSetCard({ ws }: { ws: WordSet }) {
         {ws.words.length} words · {letters} letters · {describeDisplay(ws)}
       </p>
       <div className="mt-auto flex flex-wrap items-center gap-1 border-t border-slate-100 pt-3">
+        <Link
+          href={`/teacher/launch?set=${ws.id}`}
+          className="mr-1 inline-flex items-center rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-extrabold text-white hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
+        >
+          Launch
+        </Link>
         <Link href={`/teacher/word-sets/${ws.id}`} className={btn.ghost}>
           Edit
         </Link>
@@ -73,6 +80,8 @@ function WordSetCard({ ws }: { ws: WordSet }) {
 export function TeacherDashboard() {
   const ready = useWordSetsReady();
   const wordSets = useWordSetStore((s) => s.wordSets);
+  const hostReady = useHostReady();
+  const openRoom = useHostStore((s) => s.room);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6">
@@ -82,6 +91,18 @@ export function TeacherDashboard() {
           Create word sets, then launch a live round for a class.
         </p>
       </div>
+
+      {hostReady && openRoom && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-emerald-50 px-5 py-4 ring-1 ring-emerald-200">
+          <p className="text-emerald-900">
+            Live round <strong className="font-mono">{openRoom.code}</strong> ·{" "}
+            {openRoom.round.title} · {openRoom.players.length} students
+          </p>
+          <Link href={`/projector/${openRoom.code}`} className={btn.primary}>
+            Open projector
+          </Link>
+        </div>
+      )}
 
       <section aria-labelledby="classes-heading">
         <h2 id="classes-heading" className="text-xl font-black">

@@ -22,6 +22,12 @@ export function TeacherHeader() {
             Dashboard
           </Link>
           <Link
+            href="/join"
+            className="rounded-lg px-3 py-1.5 hover:bg-slate-100 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
+          >
+            Student join
+          </Link>
+          <Link
             href="/play"
             className="rounded-lg px-3 py-1.5 hover:bg-slate-100 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
           >

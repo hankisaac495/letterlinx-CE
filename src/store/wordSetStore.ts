@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { randomSeed, SAMPLE_WORD_SETS, type WordSetDraft } from "@/lib/game";
 import { newId } from "@/lib/util/id";
+import { createHydrationHook } from "./hydration";
 
 export interface WordSet extends WordSetDraft {
   id: string;
@@ -105,17 +105,8 @@ export const useWordSetStore = create<WordSetState>()(
   ),
 );
 
-const subscribeHydration = (cb: () => void) => useWordSetStore.persist.onFinishHydration(cb);
-const getHydrated = () => useWordSetStore.persist.hasHydrated();
-const getServerHydrated = () => false;
-
 /**
  * Loads word sets from localStorage after mount (avoids server/client mismatches).
  * Returns true once they're available.
  */
-export function useWordSetsReady(): boolean {
-  useEffect(() => {
-    if (!useWordSetStore.persist.hasHydrated()) void useWordSetStore.persist.rehydrate();
-  }, []);
-  return useSyncExternalStore(subscribeHydration, getHydrated, getServerHydrated);
-}
+export const useWordSetsReady = createHydrationHook(() => useWordSetStore.persist);

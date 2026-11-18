@@ -195,7 +195,7 @@ export interface HintAvailability {
   ready: boolean;
 }
 
-export function hintsEnabled(config: GameConfig): boolean {
+export function hintsEnabled(config: Pick<GameConfig, "display">): boolean {
   return config.display.mode === "hidden" && config.display.allowHints;
 }
 

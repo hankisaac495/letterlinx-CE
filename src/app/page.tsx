@@ -14,13 +14,13 @@ export default function Home() {
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-4 py-12 md:flex-row md:justify-between">
         <section className="max-w-md text-center md:text-left">
           <Image
-            src="/letterlinx-logo.svg"
+            src="/letterlinx-header-logo.svg"
             alt="LetterLinx"
-            width={320}
-            height={133}
+            width={564}
+            height={128}
             priority
             unoptimized
-            className="mx-auto -mb-2 h-auto w-64 md:mx-0 md:-ml-5 md:w-72"
+            className="mx-auto mb-4 h-auto w-64 md:mx-0 md:w-80"
           />
           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Classroom Edition</h1>
           <p className="mt-4 text-lg text-slate-600">
@@ -42,7 +42,13 @@ export default function Home() {
                 Try a practice round
               </Link>
             </div>
-            <p className="text-sm text-slate-500">Coming soon: class rosters and live rounds.</p>
+            <p className="text-sm text-slate-500">
+              Students:{" "}
+              <Link href="/join" className="font-semibold text-blue-700 hover:underline">
+                join a round
+              </Link>{" "}
+              with the code on the projector.
+            </p>
           </div>
         </section>
 

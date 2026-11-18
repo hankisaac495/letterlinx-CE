@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { elapsedMs, type GameState } from "@/lib/game";
+import type { RoomPhase, Standing } from "@/lib/live";
 import { useNow } from "@/hooks/useNow";
 import { useGameStore } from "@/store/gameStore";
 import { GameBoard, type TileHighlight } from "./GameBoard";
@@ -31,8 +32,27 @@ interface Feedback {
   tone: "good" | "neutral";
 }
 
-function ResultCard({ game, onPlayAgain }: { game: GameState; onPlayAgain(): void }) {
+/** Extra state when the game is part of a live round. */
+export interface LiveRoundInfo {
+  phase: RoomPhase;
+  /** ms until play starts, during the countdown. */
+  countdownMs: number | null;
+  standing: Standing | null;
+  totalPlayers: number;
+  teamName: string | null;
+}
+
+function ResultCard({
+  game,
+  live,
+  onPlayAgain,
+}: {
+  game: GameState;
+  live?: LiveRoundInfo;
+  onPlayAgain(): void;
+}) {
   const complete = game.status === "complete";
+  const roundOver = !live || live.phase === "ended";
   const total = game.config.words.length;
   return (
     <motion.div
@@ -59,21 +79,39 @@ function ResultCard({ game, onPlayAgain }: { game: GameState; onPlayAgain(): voi
           <dd className="text-xl font-black tabular-nums">{game.score}</dd>
         </div>
       </dl>
-      {complete && (
+      {live?.standing && live.phase === "ended" && (
+        <p className="mt-4 text-lg font-black text-slate-900" data-testid="final-rank">
+          You placed #{live.standing.rank} of {live.totalPlayers}
+        </p>
+      )}
+      {!roundOver && (
         <p className="mt-4 text-sm text-slate-500">Nice work. Waiting for the round to finish…</p>
       )}
-      <button
-        type="button"
-        onClick={onPlayAgain}
-        className="mt-5 w-full rounded-xl bg-blue-700 px-4 py-2.5 font-extrabold text-white hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
-      >
-        Play again
-      </button>
+      {live && roundOver && (
+        <p className="mt-2 text-sm text-slate-500">Look up at the projector for the results.</p>
+      )}
+      {!live && (
+        <button
+          type="button"
+          onClick={onPlayAgain}
+          className="mt-5 w-full rounded-xl bg-blue-700 px-4 py-2.5 font-extrabold text-white hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
+        >
+          Play again
+        </button>
+      )}
     </motion.div>
   );
 }
 
-export function PlayGame({ title, onExit }: { title: string; onExit(): void }) {
+export function PlayGame({
+  title,
+  onExit,
+  live,
+}: {
+  title: string;
+  onExit(): void;
+  live?: LiveRoundInfo;
+}) {
   const game = useGameStore((s) => s.game);
   const hint = useGameStore((s) => s.hint);
   const submit = useGameStore((s) => s.submit);
@@ -81,8 +119,11 @@ export function PlayGame({ title, onExit }: { title: string; onExit(): void }) {
   const clearHint = useGameStore((s) => s.clearHint);
   const tick = useGameStore((s) => s.tick);
   const end = useGameStore((s) => s.end);
+  const toGameNow = useGameStore((s) => s.toGameNow);
   const playing = game?.status === "playing";
-  const now = useNow(playing);
+  const roomActive = !live || live.phase === "playing";
+  const realNow = useNow(playing || live?.phase === "countdown");
+  const now = toGameNow(realNow);
   const highlights = useHighlights(game);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [announcement, setAnnouncement] = useState("");
@@ -144,7 +185,7 @@ export function PlayGame({ title, onExit }: { title: string; onExit(): void }) {
               board={game.config.board}
               highlights={highlights}
               hint={hint}
-              disabled={!playing}
+              disabled={!playing || !roomActive}
               onSubmit={onSubmit}
             />
 
@@ -171,20 +212,47 @@ export function PlayGame({ title, onExit }: { title: string; onExit(): void }) {
 
             {!playing && (
               <div className="absolute inset-0 flex items-center justify-center rounded-[4%] bg-slate-900/40 backdrop-blur-[1px]">
-                <ResultCard game={game} onPlayAgain={onExit} />
+                <ResultCard game={game} live={live} onPlayAgain={onExit} />
+              </div>
+            )}
+            {playing && live?.phase === "countdown" && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[4%] bg-slate-900/70 text-white">
+                <p className="text-lg font-bold">Get ready…</p>
+                <motion.p
+                  key={Math.ceil((live.countdownMs ?? 0) / 1000)}
+                  initial={{ scale: 1.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-8xl font-black tabular-nums"
+                  data-testid="countdown"
+                >
+                  {Math.max(1, Math.ceil((live.countdownMs ?? 0) / 1000))}
+                </motion.p>
+              </div>
+            )}
+            {playing && live?.phase === "paused" && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-[4%] bg-slate-900/70 text-white">
+                <p className="text-4xl font-black" data-testid="paused">
+                  Paused
+                </p>
               </div>
             )}
           </div>
 
           <div className="flex w-full items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => (playing ? end() : onExit())}
-              className="rounded-full px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 focus-visible:ring-4 focus-visible:ring-slate-300 focus-visible:outline-none"
-            >
-              {playing ? "End round" : "Back"}
-            </button>
-            {playing && <HintButton game={game} now={now} onHint={onHint} />}
+            {live ? (
+              <p className="text-sm font-semibold text-slate-500">
+                {live.teamName ? `Team ${live.teamName}` : `${live.totalPlayers} playing`}
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => (playing ? end() : onExit())}
+                className="rounded-full px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 focus-visible:ring-4 focus-visible:ring-slate-300 focus-visible:outline-none"
+              >
+                {playing ? "End round" : "Back"}
+              </button>
+            )}
+            {playing && roomActive && <HintButton game={game} now={now} onHint={onHint} />}
           </div>
         </div>
       </div>

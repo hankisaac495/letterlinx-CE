@@ -23,7 +23,15 @@ export interface ActiveHint {
 interface GameStore {
   game: GameState | null;
   hint: ActiveHint | null;
-  start(config: GameConfig): void;
+  /** Maps real time to game time. Live rounds use the room clock (pauses, skew). */
+  toGameNow: (realNow: number) => number;
+  start(
+    config: GameConfig,
+    options?: { startedAt?: number; toGameNow?: (realNow: number) => number },
+  ): void;
+  /** Replace the whole game (e.g. restored after a reload). */
+  load(game: GameState, toGameNow: (realNow: number) => number): void;
+  setClock(toGameNow: (realNow: number) => number): void;
   submit(path: number[]): SubmitOutcome;
   takeHint(): HintResult | null;
   clearHint(key: number): void;
@@ -33,21 +41,29 @@ interface GameStore {
 }
 
 /** Single-player round state (in memory; live rounds sync this in Phase 5). */
+const identity = (n: number) => n;
+
 export const useGameStore = create<GameStore>((set, get) => ({
   game: null,
   hint: null,
-  start: (config) => set({ game: createGame(config, Date.now()), hint: null }),
+  toGameNow: identity,
+  start: (config, options = {}) => {
+    const toGameNow = options.toGameNow ?? identity;
+    set({ game: createGame(config, options.startedAt ?? Date.now()), hint: null, toGameNow });
+  },
+  load: (game, toGameNow) => set({ game, hint: null, toGameNow }),
+  setClock: (toGameNow) => set({ toGameNow }),
   submit: (path) => {
     const { game } = get();
     if (!game) return { type: "ignored" };
-    const { state, outcome } = submitPath(game, path, Date.now());
+    const { state, outcome } = submitPath(game, path, get().toGameNow(Date.now()));
     set({ game: state });
     return outcome;
   },
   takeHint: () => {
     const { game } = get();
     if (!game) return null;
-    const result = requestHint(game, Date.now(), Math.random);
+    const result = requestHint(game, get().toGameNow(Date.now()), Math.random);
     set({
       game: result.state,
       ...(result.ok
@@ -62,12 +78,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   tick: () => {
     const { game } = get();
     if (!game) return;
-    const next = tick(game, Date.now());
+    const next = tick(game, get().toGameNow(Date.now()));
     if (next !== game) set({ game: next });
   },
   end: () => {
     const { game } = get();
-    if (game) set({ game: endGame(game, Date.now()) });
+    if (game) set({ game: endGame(game, get().toGameNow(Date.now())) });
   },
-  reset: () => set({ game: null, hint: null }),
+  reset: () => set({ game: null, hint: null, toGameNow: identity }),
 }));
