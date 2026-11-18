@@ -79,6 +79,33 @@ First-time Playwright setup on a new machine: `npx playwright install chromium`.
 3. Set the production branch to `main`. Every push to `main` deploys to production and every
    pull request gets a preview URL.
 
-No environment variables are needed until Phase 9 (cross-device play via Supabase Realtime).
-At that point, copy `.env.example` to `.env.local` for local work and add the same variables in
-**Vercel → Project → Settings → Environment Variables**. Never commit real keys.
+## Cross-device live rounds (Supabase Realtime)
+
+Without configuration, live rounds sync between tabs of the **same browser** (BroadcastChannel).
+To let students join from their own devices, connect a free Supabase project:
+
+1. Sign up at [supabase.com](https://supabase.com) and create a project (any region close to your school;
+   save the database password — the app doesn't use it).
+2. In the project, open **Project Settings → API Keys** and copy:
+   - the **Project URL** (`https://<ref>.supabase.co`)
+   - the **publishable** key (`sb_publishable_…`, called the _anon / public_ key in older projects).
+     Never use the `service_role` / secret key.
+3. In **Vercel → Project → Settings → Environment Variables**, add for Production, Preview and Development:
+   - `NEXT_PUBLIC_SUPABASE_URL` = Project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = publishable key
+4. Redeploy (environment variables apply to new deployments only).
+5. In Supabase **Realtime → Settings**, make sure public channels are allowed (leave
+   "private channels only" off). No tables or database setup are needed: the app uses Realtime
+   _broadcast_ only.
+
+For local development, copy `.env.example` to `.env.local` and fill in the same two values.
+
+The projector lobby shows **Live across devices** when Realtime is connected, or **This browser only
+(demo mode)** otherwise. If Realtime can't connect, the app falls back to same-browser sync automatically.
+
+How traffic is kept low (the free plan meters messages): the projector broadcasts room snapshots about once
+a second on `llce:<code>`; students send their progress to a projector-only inbox topic
+(`llce:<code>:inbox`) over REST, so students never receive each other's updates.
+
+What stays local: word sets, reports and the roster session live in the teacher's browser; scores are
+reported by each student's device and are not server-verified (fine for a prototype, not for grading).

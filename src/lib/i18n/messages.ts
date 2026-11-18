@@ -624,6 +624,13 @@ export const MESSAGES = {
     "LetterLinx on a classroom display showing the end-of-round results, with a student playing on a phone in front.",
     "LetterLinx en una pantalla del aula con los resultados de la ronda, y un estudiante jugando en un teléfono delante.",
   ],
+  "sync.network": ["Live across devices", "En vivo en todos los dispositivos"],
+  "sync.local": ["This browser only (demo mode)", "Solo este navegador (modo demo)"],
+  "sync.localHelp": [
+    "Students must join in other tabs of this browser. Add Supabase to play across devices.",
+    "Los estudiantes deben unirse en otras pestañas de este navegador. Agrega Supabase para jugar entre dispositivos.",
+  ],
+  "sync.connecting": ["Connecting…", "Conectando…"],
   // @append
 } as const satisfies Record<string, readonly [en: string, es: string]>;
 

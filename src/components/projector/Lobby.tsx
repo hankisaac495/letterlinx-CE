@@ -19,6 +19,7 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
   const origin = useOrigin();
   const reduceMotion = useReducedMotion();
   const start = useHostStore((s) => s.start);
+  const transport = useHostStore((s) => s.transport);
   const { settings } = room.round;
   const joinUrl = `${origin}/join`;
   const section = room.round.sectionId
@@ -51,6 +52,24 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
               </span>
             ))}
           </div>
+        </div>
+        <div data-testid="sync-status" data-transport={transport ?? "connecting"}>
+          {transport === "network" ? (
+            <p className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1 text-base font-bold text-emerald-300">
+              <span className="size-2 rounded-full bg-emerald-400" aria-hidden="true" />
+              {t("sync.network")}
+            </p>
+          ) : transport === "local" ? (
+            <div className="flex flex-col gap-1">
+              <p className="inline-flex w-fit items-center gap-2 rounded-full bg-amber-400/15 px-3 py-1 text-base font-bold text-amber-200">
+                <span className="size-2 rounded-full bg-amber-300" aria-hidden="true" />
+                {t("sync.local")}
+              </p>
+              <p className="text-sm text-white/50">{t("sync.localHelp")}</p>
+            </div>
+          ) : (
+            <p className="text-base text-white/50">{t("sync.connecting")}</p>
+          )}
         </div>
         <dl className="flex flex-wrap gap-x-8 gap-y-2 text-xl text-white/70">
           <div>

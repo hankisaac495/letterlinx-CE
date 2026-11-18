@@ -12,7 +12,7 @@ import {
   type RoomSnapshot,
   type WelcomePayload,
 } from "@/lib/live";
-import { createSyncProvider, type SyncProvider } from "@/lib/sync";
+import { createSyncProvider, SYNC_TIMING, type SyncProvider } from "@/lib/sync";
 import { newId } from "@/lib/util/id";
 import { useGameStore } from "@/store/gameStore";
 
@@ -25,8 +25,6 @@ export interface Identity {
 }
 
 const IDENTITY_KEY = "llce:player";
-const JOIN_TIMEOUT_MS = 3000;
-const PROGRESS_HEARTBEAT_MS = 3000;
 
 function loadIdentity(): Identity | null {
   try {
@@ -121,7 +119,7 @@ export function useStudentRoom() {
           void disconnect();
           return "notFound";
         });
-      }, JOIN_TIMEOUT_MS);
+      }, SYNC_TIMING[provider.transport].joinTimeoutMs);
     },
     [disconnect],
   );
@@ -190,7 +188,8 @@ export function useStudentRoom() {
     const unsub = useGameStore.subscribe((s, prev) => {
       if (s.game && s.game !== prev.game) sendProgress();
     });
-    const heartbeat = window.setInterval(sendProgress, PROGRESS_HEARTBEAT_MS);
+    const transport = providerRef.current?.transport ?? "local";
+    const heartbeat = window.setInterval(sendProgress, SYNC_TIMING[transport].progressHeartbeatMs);
     return () => {
       unsub();
       window.clearInterval(heartbeat);

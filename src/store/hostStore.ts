@@ -29,10 +29,14 @@ import {
 import { toRoundResult } from "@/lib/reports";
 import { newId } from "@/lib/util/id";
 import { useReportStore } from "./reportStore";
+import type { SyncTransport } from "@/lib/sync";
 import { createHydrationHook } from "./hydration";
 
 interface HostState {
   room: RoomState | null;
+  /** How this room reaches students (set once connected; not persisted). */
+  transport: SyncTransport | null;
+  setTransport(transport: SyncTransport | null): void;
   botPlans: Record<string, BotPlan>;
   open(round: RoundConfig): string;
   close(): void;
@@ -82,6 +86,8 @@ export const useHostStore = create<HostState>()(
       return {
         room: null,
         botPlans: {},
+        transport: null,
+        setTransport: (transport) => set({ transport }),
         open: (round) => {
           const code = generateRoomCode();
           set({ room: createRoom(code, round, Date.now()), botPlans: {} });

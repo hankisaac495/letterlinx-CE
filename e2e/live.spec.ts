@@ -177,3 +177,9 @@ test("simulated students never duplicate a student who already joined", async ({
   const names = await projector.getByTestId("lobby-player").allTextContents();
   expect(new Set(names).size).toBe(names.length);
 });
+
+test("projector shows same-browser demo mode when Supabase isn't configured", async ({ page }) => {
+  await launch(page, "Cell Biology");
+  await expect(page.getByTestId("sync-status")).toHaveAttribute("data-transport", "local");
+  await expect(page.getByText("This browser only (demo mode)")).toBeVisible();
+});

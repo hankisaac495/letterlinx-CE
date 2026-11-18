@@ -9,6 +9,7 @@ const channelName = (roomCode: string) => `llce-room-${roomCode}`;
  * Messages are not echoed back to the sending instance.
  */
 export class BroadcastChannelSyncProvider implements SyncProvider {
+  readonly transport = "local" as const;
   private channel: BroadcastChannel | null = null;
   private clientId = "";
   private handlers = new Set<Handler>();
@@ -44,6 +45,7 @@ export class BroadcastChannelSyncProvider implements SyncProvider {
  * localStorage and listens for `storage` events from other tabs.
  */
 export class LocalStorageSyncProvider implements SyncProvider {
+  readonly transport = "local" as const;
   private key = "";
   private clientId = "";
   private handlers = new Set<Handler>();

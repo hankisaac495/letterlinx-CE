@@ -1,19 +1,19 @@
 /**
  * Student-side helpers that talk to a room before joining it.
  */
-import { createSyncProvider } from "@/lib/sync";
+import { createSyncProvider, SYNC_TIMING } from "@/lib/sync";
 import { newId } from "@/lib/util/id";
 import { MSG, type RoomOpenPayload, type RoomSnapshot } from "./types";
 
 export const sectionChannel = (sectionId: string) => `section-${sectionId}`;
 
 /** Fetches a room's snapshot without joining. Resolves null if no host answers. */
-export async function peekRoom(code: string, timeoutMs = 3000): Promise<RoomSnapshot | null> {
+export async function peekRoom(code: string): Promise<RoomSnapshot | null> {
   const provider = createSyncProvider();
   await provider.joinRoom(code, newId("peek"));
   try {
     return await new Promise<RoomSnapshot | null>((resolve) => {
-      const timer = setTimeout(() => resolve(null), timeoutMs);
+      const timer = setTimeout(() => resolve(null), SYNC_TIMING[provider.transport].joinTimeoutMs);
       provider.subscribe((m) => {
         if (m.type === MSG.snapshot) {
           clearTimeout(timer);

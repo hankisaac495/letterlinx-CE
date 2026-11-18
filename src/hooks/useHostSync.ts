@@ -10,12 +10,10 @@ import {
   type ProgressPayload,
   type WelcomePayload,
 } from "@/lib/live";
-import { createSyncProvider, type SyncProvider } from "@/lib/sync";
+import { createSyncProvider, SYNC_TIMING, type SyncProvider } from "@/lib/sync";
 import { useHostStore } from "@/store/hostStore";
 
 const TICK_MS = 250;
-const HEARTBEAT_MS = 2000;
-const THROTTLE_MS = 150;
 
 /** Runs the host side of a live room: messaging, snapshots and the clock tick. */
 export function useHostSync(code: string | null) {
@@ -34,11 +32,14 @@ export function useHostSync(code: string | null) {
     };
     const scheduleSend = () => {
       if (pending !== null) return;
-      const wait = Math.max(0, THROTTLE_MS - (Date.now() - lastSent));
+      const wait = Math.max(0, timing().snapshotThrottleMs - (Date.now() - lastSent));
       pending = window.setTimeout(send, wait);
     };
 
-    const ready = provider.joinRoom(code, "host").then(() => {
+    const timing = () => SYNC_TIMING[provider?.transport ?? "local"];
+    useHostStore.getState().setTransport(null);
+    const ready = provider.joinRoom(code, "host", { role: "host" }).then(() => {
+      useHostStore.getState().setTransport(provider?.transport ?? null);
       provider?.subscribe((message) => {
         const store = useHostStore.getState();
         switch (message.type) {
@@ -79,17 +80,19 @@ export function useHostSync(code: string | null) {
         sectionId,
         title: useHostStore.getState().room?.round.title ?? "",
       });
-      void sectionProvider.joinRoom(sectionChannel(sectionId), "host").then(() => {
-        if (section !== sectionProvider) return; // cleaned up meanwhile
-        sectionProvider.subscribe((m) => {
-          if (m.type === MSG.whereRoom) sectionProvider.broadcast(MSG.roomOpen, payload());
+      void sectionProvider
+        .joinRoom(sectionChannel(sectionId), "host", { role: "host" })
+        .then(() => {
+          if (section !== sectionProvider) return; // cleaned up meanwhile
+          sectionProvider.subscribe((m) => {
+            if (m.type === MSG.whereRoom) sectionProvider.broadcast(MSG.roomOpen, payload());
+          });
+          sectionProvider.broadcast(MSG.roomOpen, payload());
+          announce = window.setInterval(
+            () => sectionProvider.broadcast(MSG.roomOpen, payload()),
+            SYNC_TIMING[sectionProvider.transport].heartbeatMs,
+          );
         });
-        sectionProvider.broadcast(MSG.roomOpen, payload());
-        announce = window.setInterval(
-          () => sectionProvider.broadcast(MSG.roomOpen, payload()),
-          HEARTBEAT_MS,
-        );
-      });
     }
 
     const unsubscribe = useHostStore.subscribe((s, prev) => {
@@ -97,8 +100,8 @@ export function useHostSync(code: string | null) {
     });
     const tick = window.setInterval(() => useHostStore.getState().tick(), TICK_MS);
     const heartbeat = window.setInterval(() => {
-      if (Date.now() - lastSent >= HEARTBEAT_MS) send();
-    }, HEARTBEAT_MS / 2);
+      if (Date.now() - lastSent >= timing().heartbeatMs) send();
+    }, 1000);
 
     return () => {
       unsubscribe();
