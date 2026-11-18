@@ -37,7 +37,8 @@ interface HostState {
   join(id: string, name: string): void;
   leave(id: string): void;
   report(id: string, progress: PlayerProgress, roundNumber: number): void;
-  addBots(count: number): void;
+  /** Adds simulated students; uses `candidates` (e.g. the class roster) when given. */
+  addBots(count: number, candidates?: { id: string; name: string }[]): void;
   start(): void;
   pause(): void;
   resume(): void;
@@ -75,16 +76,21 @@ export const useHostStore = create<HostState>()(
         leave: (id) => update((r) => removePlayer(r, id)),
         report: (id, progress, roundNumber) =>
           update((r) => (r.roundNumber === roundNumber ? applyProgress(r, id, progress) : r)),
-        addBots: (count) => {
+        addBots: (count, candidates) => {
           const { room } = get();
           if (!room) return;
-          const names = botNames(count, rng(), new Set(room.players.map((p) => p.name)));
+          const joined = new Set(room.players.map((p) => p.id));
+          const people = candidates
+            ? candidates.filter((c) => !joined.has(c.id)).slice(0, count)
+            : botNames(count, rng(), new Set(room.players.map((p) => p.name))).map((name) => ({
+                id: newId("bot"),
+                name,
+              }));
           const now = Date.now();
           let next = room;
           const plans = { ...get().botPlans };
           const offset = Math.max(0, gameElapsedMs(room.clock, now));
-          for (const name of names) {
-            const id = newId("bot");
+          for (const { id, name } of people) {
             next = addPlayer(next, { id, name, isBot: true }, now);
             if (room.phase !== "lobby") plans[id] = planFor(next, offset);
           }

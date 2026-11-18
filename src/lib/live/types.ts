@@ -129,7 +129,19 @@ export interface ProgressPayload {
   progress: PlayerProgress;
 }
 
+/** Announced on a section's channel so badge sign-ins can find the open room. */
+export interface RoomOpenPayload {
+  code: string;
+  sectionId: string;
+  title: string;
+}
+
 export const MSG = {
+  /** Student → host: send me a snapshot (before choosing a name). */
+  peek: "peek",
+  /** Student → section channel: is there an open room for my class? */
+  whereRoom: "whereRoom",
+  roomOpen: "roomOpen",
   hello: "hello",
   welcome: "welcome",
   snapshot: "snapshot",

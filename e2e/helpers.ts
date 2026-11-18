@@ -57,3 +57,21 @@ export async function dragPath(page: Page, path: number[]) {
   }
   await page.mouse.up();
 }
+
+/** Signs in through the simulated Clever (or Google) flow as a demo teacher. */
+export async function signIn(
+  page: Page,
+  teacher = "Ms. Quill",
+  provider: "Clever" | "Google Classroom" = "Clever",
+) {
+  await page.goto("/");
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.reload();
+  await page.getByRole("link", { name: `Log in with ${provider}` }).click();
+  await page.getByRole("button", { name: "Allow" }).click();
+  await page.getByRole("button", { name: new RegExp(teacher) }).click();
+  await page.waitForURL(/\/teacher$/);
+}

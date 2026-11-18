@@ -1,6 +1,7 @@
 /**
- * Roster data modelled on Clever's API objects so a real integration can be
- * swapped in later. Phase 6 adds MockCleverProvider. Demo data only.
+ * Roster data modelled on Clever's API objects (district, school, teacher,
+ * section, student) so a real integration can be swapped in later.
+ * Demo data only: students are identified by first name and last initial.
  */
 export interface District {
   id: string;
@@ -9,36 +10,37 @@ export interface District {
 
 export interface School {
   id: string;
-  districtId: string;
+  district: string;
   name: string;
-  lowGrade: string;
-  highGrade: string;
+  low_grade: string;
+  high_grade: string;
 }
 
 export interface Teacher {
   id: string;
-  districtId: string;
-  schoolId: string;
+  district: string;
+  school: string;
   name: { first: string; last: string };
-  title?: string;
+  title: string;
 }
 
 export interface Section {
   id: string;
-  schoolId: string;
-  teacherId: string;
+  district: string;
+  school: string;
+  teacher: string;
   name: string;
   subject: string;
   grade: string;
   period: string;
-  studentIds: string[];
+  students: string[];
 }
 
-/** Students are identified by first name and last initial only. */
 export interface Student {
   id: string;
-  schoolId: string;
-  name: { first: string; lastInitial: string };
+  district: string;
+  school: string;
+  name: { first: string; last_initial: string };
   grade: string;
 }
 
@@ -46,4 +48,22 @@ export interface RosterProvider {
   getTeacher(teacherId: string): Promise<Teacher>;
   getSections(teacherId: string): Promise<Section[]>;
   getStudents(sectionId: string): Promise<Student[]>;
+  /** Single section lookup (used by the join flow). */
+  getSection(sectionId: string): Promise<Section>;
+}
+
+export class RosterNotFoundError extends Error {
+  constructor(kind: string, id: string) {
+    super(`${kind} ${id} not found`);
+    this.name = "RosterNotFoundError";
+  }
+}
+
+/** "Maya" + "R" → "Maya R." */
+export function studentDisplayName(s: Pick<Student, "name">): string {
+  return `${s.name.first} ${s.name.last_initial}.`;
+}
+
+export function teacherDisplayName(t: Pick<Teacher, "name" | "title">): string {
+  return `${t.title} ${t.name.last}`;
 }

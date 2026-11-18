@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { RoomState } from "@/lib/live";
 import { useOrigin } from "@/hooks/useOrigin";
+import { getRosterProvider } from "@/lib/roster";
 import { useHostStore } from "@/store/hostStore";
 import { displayName } from "./format";
 
@@ -18,6 +19,9 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
   const start = useHostStore((s) => s.start);
   const { settings } = room.round;
   const joinUrl = `${origin}/join`;
+  const section = room.round.sectionId
+    ? getRosterProvider().data.sections.find((s) => s.id === room.round.sectionId)
+    : undefined;
 
   return (
     <div className="grid flex-1 gap-8 p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
@@ -26,7 +30,9 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
           Go to <span className="font-black text-white">{joinUrl.replace(/^https?:\/\//, "")}</span>
         </p>
         <div>
-          <p className="text-2xl font-bold text-white/70">and enter the code</p>
+          <p className="text-2xl font-bold text-white/70">
+            and enter the code{section ? ", or sign in with your Clever badge" : ""}
+          </p>
           <div
             className="mt-3 flex gap-3"
             aria-label={`Room code ${room.code.split("").join(" ")}`}
@@ -99,9 +105,15 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
         aria-labelledby="joined-heading"
       >
         <h2 id="joined-heading" className="text-3xl font-black">
-          <span data-testid="player-count">{room.players.length}</span>{" "}
-          {room.players.length === 1 ? "student" : "students"} joined
+          <span data-testid="player-count">{room.players.length}</span>
+          {section ? ` of ${section.students.length}` : ""}{" "}
+          {room.players.length === 1 && !section ? "student" : "students"} joined
         </h2>
+        {section && (
+          <p className="mt-1 text-xl text-white/60">
+            {section.name} · Period {section.period}
+          </p>
+        )}
         {room.players.length === 0 ? (
           <p className="mt-4 text-xl text-white/50">Names will pop in here as students join.</p>
         ) : (

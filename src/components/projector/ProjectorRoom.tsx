@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { useHostSync } from "@/hooks/useHostSync";
+import { createRng, randomSeed, shuffle } from "@/lib/game";
+import { getRosterProvider, studentDisplayName } from "@/lib/roster";
 import { useHostReady, useHostStore } from "@/store/hostStore";
 import { ControlBar } from "./ControlBar";
 import { LiveView } from "./LiveView";
@@ -24,14 +26,28 @@ export function ProjectorRoom() {
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
   const simulate = useCallback(() => {
-    const inLobby = useHostStore.getState().room?.phase === "lobby";
-    if (!inLobby) {
-      useHostStore.getState().addBots(Math.ceil(BOT_BATCH / 2));
+    const current = useHostStore.getState().room;
+    if (!current) return;
+    // With a class, simulated students come from its roster; otherwise invented names.
+    const sectionId = current.round.sectionId;
+    const roster = getRosterProvider().data;
+    const section = sectionId ? roster.sections.find((sec) => sec.id === sectionId) : undefined;
+    const candidates = section
+      ? shuffle(
+          createRng(randomSeed()),
+          roster.students
+            .filter((s) => section.students.includes(s.id))
+            .map((s) => ({ id: s.id, name: studentDisplayName(s) })),
+        )
+      : undefined;
+    const count = candidates ? Math.max(1, Math.round(candidates.length * 0.8)) : BOT_BATCH;
+    if (current.phase !== "lobby") {
+      useHostStore.getState().addBots(Math.ceil(count / 2), candidates);
       return;
     }
-    for (let i = 0; i < BOT_BATCH; i++) {
+    for (let i = 0; i < count; i++) {
       timers.current.push(
-        window.setTimeout(() => useHostStore.getState().addBots(1), i * BOT_STAGGER_MS),
+        window.setTimeout(() => useHostStore.getState().addBots(1, candidates), i * BOT_STAGGER_MS),
       );
     }
   }, []);

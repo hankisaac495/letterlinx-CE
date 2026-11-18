@@ -13,11 +13,25 @@ import {
   type RoundDuration,
 } from "@/lib/game";
 import { MAX_TEAMS, MIN_TEAMS } from "@/lib/live";
+import { useSections } from "@/hooks/useRoster";
+import { useTeacher } from "@/hooks/useTeacher";
+import type { Section } from "@/lib/roster";
 import { useHostReady, useHostStore } from "@/store/hostStore";
 import { useWordSetsReady, useWordSetStore, type WordSet } from "@/store/wordSetStore";
 import { DisplaySettingsFields } from "./DisplaySettingsFields";
 
-function LaunchForm({ wordSet, allSets }: { wordSet: WordSet; allSets: WordSet[] }) {
+function LaunchForm({
+  wordSet,
+  allSets,
+  sections,
+  initialSectionId,
+}: {
+  wordSet: WordSet;
+  allSets: WordSet[];
+  sections: Section[];
+  initialSectionId: string | null;
+}) {
+  const [sectionId, setSectionId] = useState<string>(initialSectionId ?? sections[0]?.id ?? "");
   const router = useRouter();
   const openRoom = useHostStore((s) => s.open);
   const existingRoom = useHostStore((s) => s.room);
@@ -50,7 +64,7 @@ function LaunchForm({ wordSet, allSets }: { wordSet: WordSet; allSets: WordSet[]
         display: wordSet.display,
       },
       wordSetId: wordSet.id,
-      sectionId: null,
+      sectionId: sectionId || null,
       settings: { display, duration, teamMode, teamCount },
     });
     router.push(`/projector/${code}`);
@@ -82,11 +96,21 @@ function LaunchForm({ wordSet, allSets }: { wordSet: WordSet; allSets: WordSet[]
           <section className={`${card} grid gap-4 p-5 sm:grid-cols-2`}>
             <label className="flex flex-col gap-1">
               <span className="text-sm font-bold">Class</span>
-              <select className={`${select} py-2`} disabled>
-                <option>Connect a roster to choose a class</option>
+              <select
+                aria-label="Class"
+                className={`${select} py-2`}
+                value={sectionId}
+                onChange={(e) => setSectionId(e.target.value)}
+              >
+                {sections.map((sec) => (
+                  <option key={sec.id} value={sec.id}>
+                    {sec.name} · Period {sec.period} ({sec.students.length})
+                  </option>
+                ))}
+                <option value="">No class · anyone with the code types a name</option>
               </select>
               <span className="text-xs text-slate-500">
-                For now, anyone with the room code can join.
+                Students pick their name from this class list, or sign in with their Clever badge.
               </span>
             </label>
             <label className="flex flex-col gap-1">
@@ -94,7 +118,11 @@ function LaunchForm({ wordSet, allSets }: { wordSet: WordSet; allSets: WordSet[]
               <select
                 className={`${select} py-2`}
                 value={wordSet.id}
-                onChange={(e) => router.replace(`/teacher/launch?set=${e.target.value}`)}
+                onChange={(e) =>
+                  router.replace(
+                    `/teacher/launch?set=${e.target.value}${sectionId ? `&section=${sectionId}` : ""}`,
+                  )
+                }
               >
                 {allSets.map((ws) => (
                   <option key={ws.id} value={ws.id}>
@@ -214,7 +242,9 @@ export function LaunchRound() {
   const setsReady = useWordSetsReady();
   const hostReady = useHostReady();
   const wordSets = useWordSetStore((s) => s.wordSets);
-  if (!setsReady || !hostReady) return <p className="p-6 text-slate-500">Loading…</p>;
+  const { teacher } = useTeacher();
+  const { data: sections } = useSections(teacher?.id ?? null);
+  if (!setsReady || !hostReady || !sections) return <p className="p-6 text-slate-500">Loading…</p>;
   const wordSet = wordSets.find((w) => w.id === params.get("set")) ?? wordSets[0];
   if (!wordSet) {
     return (
@@ -226,5 +256,14 @@ export function LaunchRound() {
       </div>
     );
   }
-  return <LaunchForm key={wordSet.id} wordSet={wordSet} allSets={wordSets} />;
+  const requested = params.get("section");
+  return (
+    <LaunchForm
+      key={wordSet.id}
+      wordSet={wordSet}
+      allSets={wordSets}
+      sections={sections}
+      initialSectionId={requested && sections.some((s) => s.id === requested) ? requested : null}
+    />
+  );
 }

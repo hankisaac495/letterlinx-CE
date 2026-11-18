@@ -1,10 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { dragPath, findPath, readTiles } from "./helpers";
+import { dragPath, findPath, readTiles, signIn } from "./helpers";
 
 async function launch(page: Page, setTitle: string, configure?: (p: Page) => Promise<void>) {
-  await page.goto("/teacher");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
+  await signIn(page);
   await page
     .getByTestId("word-set-card")
     .filter({ hasText: setTitle })
@@ -27,13 +25,17 @@ test("a student joins, plays and the projector stays in sync", async ({
     `Room code ${code.split("").join(" ")}`,
   );
 
+  await expect(projector.getByText("Life Science 7 · Period 1").first()).toBeVisible();
+
   const student = await context.newPage();
   await student.goto(`/join?code=${code}`);
-  await student.getByLabel("First name").fill("Maya");
-  await student.getByLabel("Last initial").fill("r");
-  await student.getByRole("button", { name: "Join" }).click();
-  await expect(student.getByTestId("lobby-name")).toHaveText("Maya R.");
-  await expect(projector.getByTestId("lobby-player")).toHaveText(["Maya R."]);
+  await student.getByRole("button", { name: "Next" }).click();
+  // The room is for a class: students tap their name from the roster.
+  const firstName = student.getByLabel("Class list").getByRole("button").first();
+  const name = (await firstName.textContent())!.trim();
+  await firstName.click();
+  await expect(student.getByTestId("lobby-name")).toHaveText(name);
+  await expect(projector.getByTestId("lobby-player")).toHaveText([name]);
 
   await projector.getByRole("button", { name: "Start round" }).click();
   await expect(student.getByTestId("countdown")).toBeVisible();
@@ -44,8 +46,8 @@ test("a student joins, plays and the projector stays in sync", async ({
     .evaluateAll((els) => els.map((e) => e.getAttribute("data-word")!));
   const tiles = await readTiles(student);
   for (const word of words.slice(0, 2)) await dragPath(student, findPath(tiles, word)!);
-  await expect(projector.getByTestId("leaderboard")).toContainText("Maya R.");
-  await expect(projector.getByTestId("feed")).toContainText(`Maya R. found ${words[1]}`);
+  await expect(projector.getByTestId("leaderboard")).toContainText(name);
+  await expect(projector.getByTestId("feed")).toContainText(`${name} found ${words[1]}`);
 
   // Reloading the student tab rejoins with the same progress.
   const score = await student.getByTestId("score").textContent();
@@ -69,7 +71,8 @@ test("simulate class, hidden words, pause, hide names and end round", async ({
     await p.getByLabel("Allow hints").check();
   });
   await projector.getByRole("button", { name: "Simulate class" }).first().click();
-  await expect(projector.getByTestId("player-count")).toHaveText("18", { timeout: 8000 });
+  // With a class, simulated students come from its roster (80% of 24).
+  await expect(projector.getByTestId("player-count")).toHaveText("19", { timeout: 8000 });
   await projector.getByRole("button", { name: "Start round" }).click();
 
   await expect(projector.getByTestId("leaderboard").locator("li")).toHaveCount(6, {
@@ -107,6 +110,9 @@ test("simulate class, hidden words, pause, hide names and end round", async ({
 
 test("team mode shows team totals", async ({ page: projector }) => {
   await launch(projector, "Cell Biology", async (p) => {
+    await p
+      .getByLabel("Class", { exact: true })
+      .selectOption({ label: "No class · anyone with the code types a name" });
     await p.getByLabel("Team mode (auto-split students)").check();
     await p.getByLabel("Number of teams").selectOption("3");
   });
@@ -118,11 +124,56 @@ test("team mode shows team totals", async ({ page: projector }) => {
   await expect(teams.first()).toContainText("6 players");
 });
 
+test("without a class, students type their name", async ({ page: projector, context }) => {
+  const code = await launch(projector, "Cell Biology", async (p) => {
+    await p
+      .getByLabel("Class", { exact: true })
+      .selectOption({ label: "No class · anyone with the code types a name" });
+  });
+  const student = await context.newPage();
+  await student.goto(`/join?code=${code}`);
+  await student.getByRole("button", { name: "Next" }).click();
+  await student.getByLabel("First name").fill("Maya");
+  await student.getByLabel("Last initial").fill("r");
+  await student.getByRole("button", { name: "Join" }).click();
+  await expect(student.getByTestId("lobby-name")).toHaveText("Maya R.");
+  await expect(projector.getByTestId("lobby-player")).toHaveText(["Maya R."]);
+});
+
+test("Clever badge sign-in drops the student into their class's round", async ({
+  page: projector,
+  context,
+}) => {
+  await launch(projector, "Cell Biology");
+  const student = await context.newPage();
+  await student.goto("/join/badge");
+  await student.getByLabel("Class", { exact: true }).selectOption({ index: 0 }); // Ms. Quill · Life Science 7 · Period 1
+  const badge = student.getByLabel("Demo badges").getByRole("button").nth(2);
+  const name = (await badge.textContent())!.trim();
+  await badge.click();
+  await expect(student.getByTestId("lobby-name")).toHaveText(name, { timeout: 8000 });
+  await expect(projector.getByTestId("lobby-player")).toHaveText([name]);
+});
+
 test("joining a room that isn't open shows a helpful error", async ({ page }) => {
   await page.goto("/join");
   await page.getByLabel("Room code").fill("ZZZZZZ");
-  await page.getByLabel("First name").fill("Sam");
-  await page.getByLabel("Last initial").fill("T");
-  await page.getByRole("button", { name: "Join" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await expect(page.getByText(/couldn’t find that room/)).toBeVisible({ timeout: 6000 });
+});
+
+test("simulated students never duplicate a student who already joined", async ({
+  page: projector,
+  context,
+}) => {
+  const code = await launch(projector, "Cell Biology");
+  const student = await context.newPage();
+  await student.goto(`/join?code=${code}`);
+  await student.getByRole("button", { name: "Next" }).click();
+  await student.getByLabel("Class list").getByRole("button").first().click();
+  await expect(projector.getByTestId("player-count")).toHaveText("1");
+  await projector.getByRole("button", { name: "Simulate class" }).first().click();
+  await expect(projector.getByTestId("player-count")).toHaveText("20", { timeout: 8000 });
+  const names = await projector.getByTestId("lobby-player").allTextContents();
+  expect(new Set(names).size).toBe(names.length);
 });

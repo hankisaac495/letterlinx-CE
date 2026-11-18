@@ -1,4 +1,5 @@
 import { PrototypeBanner } from "@/components/PrototypeBanner";
+import { TeacherGuard } from "@/components/teacher/TeacherGuard";
 import { TeacherHeader } from "@/components/teacher/TeacherHeader";
 
 export default function TeacherLayout({ children }: LayoutProps<"/teacher">) {
@@ -6,7 +7,9 @@ export default function TeacherLayout({ children }: LayoutProps<"/teacher">) {
     <>
       <PrototypeBanner />
       <TeacherHeader />
-      <main className="flex flex-1 flex-col">{children}</main>
+      <main className="flex flex-1 flex-col">
+        <TeacherGuard>{children}</TeacherGuard>
+      </main>
     </>
   );
 }

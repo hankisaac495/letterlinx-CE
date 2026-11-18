@@ -25,13 +25,24 @@ Open http://localhost:3000.
 
 ## Try a live round (one computer)
 
-1. Open **/teacher**, click **Launch** on a word set, then **Open projector**.
-2. On the projector, click **Open a student tab** (or open `/join` in another tab) and join with the room code.
+1. On the home page click **Log in with Clever** (or Google Classroom). Both are simulated:
+   press **Allow** and pick one of the three demo teachers.
+2. On the dashboard, click **Launch round** on a class (or **Launch** on a word set), then **Open projector**.
+3. On the projector, click **Open a student tab**. Students enter the room code and tap their name
+   from the class list, or use **Log in with Clever badge** (simulated) to land in their class's round.
    Each browser tab is one student.
-3. Click **Simulate class** to add pretend students who find words at different speeds, then **Start round**.
+4. Click **Simulate class** to fill the room with students from the roster, then **Start round**.
 
 Until Phase 9, live rounds sync between tabs of the **same browser** (BroadcastChannel, with a
 localStorage fallback). The projector tab runs the round, so keep it open.
+
+### Rostering
+
+All roster access goes through `RosterProvider` (`src/lib/roster`). `MockCleverProvider` serves a seeded,
+fictional district (1 school, 3 teachers, 2–4 classes each, 15–28 students per class) shaped like
+Clever's `district`, `school`, `teacher`, `section` and `student` objects. Students are stored as first
+name + last initial only — no emails or passwords. Swap in a real Clever or Google Classroom client by
+implementing the same interface and returning it from `getRosterProvider()`.
 
 ## Scripts
 

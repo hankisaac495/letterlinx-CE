@@ -6,6 +6,7 @@ import type { WordDisplayMode } from "@/lib/game";
 import { btn, card } from "@/components/ui/styles";
 import { useHostReady, useHostStore } from "@/store/hostStore";
 import { useWordSetsReady, useWordSetStore, type WordSet } from "@/store/wordSetStore";
+import { ClassesSection } from "./ClassesSection";
 import { DeleteWordSetButton } from "./DeleteWordSetButton";
 
 const MODE_LABEL: Record<WordDisplayMode, string> = {
@@ -104,20 +105,7 @@ export function TeacherDashboard() {
         </div>
       )}
 
-      <section aria-labelledby="classes-heading">
-        <h2 id="classes-heading" className="text-xl font-black">
-          Classes
-        </h2>
-        <div className={`${card} mt-3 flex flex-wrap items-center justify-between gap-3 p-5`}>
-          <p className="text-slate-600">
-            Your classes appear here once you connect a roster (Clever or Google Classroom,
-            simulated).
-          </p>
-          <button type="button" className={btn.secondary} disabled>
-            Connect roster · coming soon
-          </button>
-        </div>
-      </section>
+      <ClassesSection />
 
       <section aria-labelledby="sets-heading">
         <div className="flex flex-wrap items-center justify-between gap-3">

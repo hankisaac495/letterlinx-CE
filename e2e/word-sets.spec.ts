@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { signIn } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/teacher");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
+  await signIn(page);
 });
 
 test("dashboard starts with the sample word sets", async ({ page }) => {

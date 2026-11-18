@@ -3,7 +3,9 @@
 import { useEffect } from "react";
 import {
   MSG,
+  sectionChannel,
   toSnapshot,
+  type RoomOpenPayload,
   type HelloPayload,
   type ProgressPayload,
   type WelcomePayload,
@@ -40,6 +42,9 @@ export function useHostSync(code: string | null) {
       provider?.subscribe((message) => {
         const store = useHostStore.getState();
         switch (message.type) {
+          case MSG.peek:
+            send();
+            break;
           case MSG.hello: {
             const { playerId, name } = message.payload as HelloPayload;
             store.join(playerId, name);
@@ -62,6 +67,31 @@ export function useHostSync(code: string | null) {
       send();
     });
 
+    // Announce the room on the class's channel so Clever-badge sign-ins can find it.
+    let section: SyncProvider | null = null;
+    let announce: number | null = null;
+    const sectionId = useHostStore.getState().room?.round.sectionId;
+    if (sectionId) {
+      section = createSyncProvider();
+      const sectionProvider = section;
+      const payload = (): RoomOpenPayload => ({
+        code,
+        sectionId,
+        title: useHostStore.getState().room?.round.title ?? "",
+      });
+      void sectionProvider.joinRoom(sectionChannel(sectionId), "host").then(() => {
+        if (section !== sectionProvider) return; // cleaned up meanwhile
+        sectionProvider.subscribe((m) => {
+          if (m.type === MSG.whereRoom) sectionProvider.broadcast(MSG.roomOpen, payload());
+        });
+        sectionProvider.broadcast(MSG.roomOpen, payload());
+        announce = window.setInterval(
+          () => sectionProvider.broadcast(MSG.roomOpen, payload()),
+          HEARTBEAT_MS,
+        );
+      });
+    }
+
     const unsubscribe = useHostStore.subscribe((s, prev) => {
       if (s.room !== prev.room) scheduleSend();
     });
@@ -77,6 +107,9 @@ export function useHostSync(code: string | null) {
       if (pending !== null) window.clearTimeout(pending);
       void ready.then(() => provider?.leaveRoom());
       provider = null;
+      if (announce !== null) window.clearInterval(announce);
+      void section?.leaveRoom();
+      section = null;
     };
   }, [code]);
 }

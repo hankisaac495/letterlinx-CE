@@ -18,7 +18,7 @@ import { useGameStore } from "@/store/gameStore";
 
 export type JoinStatus = "idle" | "connecting" | "notFound" | "joined";
 
-interface Identity {
+export interface Identity {
   playerId: string;
   name: string;
   code: string;
@@ -37,7 +37,7 @@ function loadIdentity(): Identity | null {
   }
 }
 
-function saveIdentity(identity: Identity | null) {
+export function saveIdentity(identity: Identity | null) {
   try {
     if (identity) sessionStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
     else sessionStorage.removeItem(IDENTITY_KEY);
@@ -127,12 +127,14 @@ export function useStudentRoom() {
   );
 
   const join = useCallback(
-    (code: string, name: string) => {
+    (code: string, name: string, rosterId?: string) => {
       const existing = loadIdentity();
+      // Roster students use their stable roster id; typed names reuse this tab's id.
       const playerId =
-        existing && existing.code === code && existing.name === name
+        rosterId ??
+        (existing && existing.code === code && existing.name === name
           ? existing.playerId
-          : newId("p");
+          : newId("p"));
       void connect({ playerId, name, code });
     },
     [connect],

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { LoginButtons } from "@/components/auth/LoginButtons";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { BOARD_COLS, BOARD_ROWS } from "@/lib/game/constants";
 
@@ -28,20 +29,13 @@ export default function Home() {
             find them — live on the projector.
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 md:items-start">
-            <div className="flex flex-wrap justify-center gap-3 md:justify-start">
-              <Link
-                href="/teacher"
-                className="rounded-xl bg-blue-700 px-5 py-3 font-extrabold text-white shadow-sm hover:bg-blue-600 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
-              >
-                Teacher dashboard
-              </Link>
-              <Link
-                href="/play"
-                className="rounded-xl bg-white px-5 py-3 font-bold text-slate-800 shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
-              >
-                Try a practice round
-              </Link>
-            </div>
+            <LoginButtons />
+            <Link
+              href="/play"
+              className="text-sm font-semibold text-blue-700 hover:underline focus-visible:ring-4 focus-visible:ring-blue-200 focus-visible:outline-none"
+            >
+              Or try a practice round without signing in
+            </Link>
             <p className="text-sm text-slate-500">
               Students:{" "}
               <Link href="/join" className="font-semibold text-blue-700 hover:underline">
