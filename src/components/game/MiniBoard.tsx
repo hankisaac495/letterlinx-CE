@@ -58,7 +58,7 @@ export function MiniBoard({
         aria-label={
           decorative ? undefined : `Board preview: ${board.rows} rows of ${board.cols} letters`
         }
-        data-testid="mini-board"
+        data-testid={decorative ? undefined : "mini-board"}
         data-tiles={board.tiles.join("")}
       >
         {board.tiles.map((letter, i) => {

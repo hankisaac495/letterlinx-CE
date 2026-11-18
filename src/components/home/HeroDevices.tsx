@@ -98,36 +98,43 @@ function LaptopScreen() {
   const g = boardGeometry(BOARD);
   return (
     <div className="@container size-full bg-slate-50">
-      <div className="flex size-full flex-col items-center gap-[2cqw] p-[3cqw]">
-        <div className="flex w-full items-center justify-between">
+      <div className="flex size-full items-stretch gap-[4cqw] p-[3cqw]">
+        <div className="flex min-w-0 flex-1 flex-col gap-[2.4cqw] py-[1cqw]">
           <span className="text-[2.6cqw] font-bold text-slate-500 uppercase">Cell Biology</span>
-          <span className="rounded-[1.2cqw] bg-slate-900 px-[1.6cqw] py-[0.4cqw] text-[3.6cqw] font-black text-white">
-            1:24
-          </span>
-          <span className="text-[4cqw] font-black text-slate-900">270</span>
-        </div>
-        <div className="flex w-full flex-wrap justify-center gap-[1cqw]">
-          {WORDS.map((w) => {
-            const done = found.includes(w.id);
-            return (
-              <span
-                key={w.id}
-                className={`flex items-center gap-[0.8cqw] rounded-[1cqw] px-[1.4cqw] py-[0.4cqw] text-[2.4cqw] font-extrabold ${
-                  done
-                    ? "bg-slate-200 text-slate-400 line-through"
-                    : "bg-white text-slate-900 ring-1 ring-slate-200"
-                }`}
-              >
-                <span
-                  className="size-[2cqw] rounded-full"
-                  style={{ backgroundColor: wordColor(w.id).fill }}
-                />
-                {w.display}
+          <div className="flex items-center justify-between">
+            <span className="rounded-[1.2cqw] bg-slate-900 px-[1.6cqw] py-[0.4cqw] text-[4cqw] font-black text-white">
+              1:24
+            </span>
+            <span className="text-right text-[2.2cqw] font-bold text-slate-500 uppercase">
+              Score{" "}
+              <span className="block text-[4.4cqw] leading-none font-black text-slate-900">
+                270
               </span>
-            );
-          })}
+            </span>
+          </div>
+          <ul className="flex flex-col gap-[1.2cqw]">
+            {WORDS.map((w) => {
+              const done = found.includes(w.id);
+              return (
+                <li
+                  key={w.id}
+                  className={`flex items-center gap-[1.2cqw] rounded-[1.2cqw] px-[1.6cqw] py-[0.7cqw] text-[2.8cqw] font-extrabold ${
+                    done
+                      ? "bg-slate-200 text-slate-400 line-through"
+                      : "bg-white text-slate-900 ring-1 ring-slate-200"
+                  }`}
+                >
+                  <span
+                    className="size-[2.4cqw] shrink-0 rounded-full"
+                    style={{ backgroundColor: wordColor(w.id).fill }}
+                  />
+                  {w.display}
+                </li>
+              );
+            })}
+          </ul>
         </div>
-        <div className="w-[25%]">
+        <div className="w-[36%] shrink-0 self-center">
           <MiniBoard
             board={withFound(found)}
             showWords
