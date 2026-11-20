@@ -9,8 +9,8 @@ export const MESSAGES = {
   ],
   "home.title": ["Classroom Edition", "Edición para el aula"],
   "home.pitch": [
-    "Enter a vocabulary list, we hide the words on a letter board, and your class races to find them — live on the projector.",
-    "Escribe una lista de vocabulario, escondemos las palabras en un tablero de letras y tu clase compite para encontrarlas, en vivo en el proyector.",
+    "Enter your word list, tailored to a subject or lesson. Then your words are hidden on a letter board, and your class races to find them—live on the projector.",
+    "Escribe tu lista de palabras, adaptada a una materia o lección. Luego tus palabras se esconden en un tablero de letras y tu clase compite para encontrarlas, en vivo en el proyector.",
   ],
   "home.practice": [
     "Or try a practice round without signing in",
