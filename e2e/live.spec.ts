@@ -181,5 +181,9 @@ test("simulated students never duplicate a student who already joined", async ({
 test("projector shows same-browser demo mode when Supabase isn't configured", async ({ page }) => {
   await launch(page, "Cell Biology");
   await expect(page.getByTestId("sync-status")).toHaveAttribute("data-transport", "local");
+  await expect(page.getByTestId("join-qr")).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: /QR code: scan to open the LetterLinx join page/ }),
+  ).toHaveAttribute("src", "/join-qr.svg");
   await expect(page.getByText("This browser only (demo mode)")).toBeVisible();
 });

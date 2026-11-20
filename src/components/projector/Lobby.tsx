@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import type { RoomState } from "@/lib/live";
 import { useOrigin } from "@/hooks/useOrigin";
 import { useT, type MessageKey } from "@/lib/i18n";
@@ -25,7 +26,21 @@ export function Lobby({ room, onSimulate }: { room: RoomState; onSimulate(): voi
 
   return (
     <div className="grid min-h-0 flex-1 gap-8 overflow-auto p-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-      <section className="flex flex-col justify-center gap-6">
+      <section className="flex flex-col justify-center gap-[min(2.4vh,1.5rem)]">
+        <figure className="flex items-center gap-5">
+          {/* Fixed QR to https://letterlinxce.com/join; students then type the room code. */}
+          <Image
+            src="/join-qr.svg"
+            alt={t("proj.qrAlt")}
+            width={1155}
+            height={1155}
+            unoptimized
+            priority
+            data-testid="join-qr"
+            className="size-[min(24vh,20rem)] rounded-2xl bg-white p-[min(1.2vh,0.75rem)] shadow-lg"
+          />
+          <figcaption className="text-2xl font-bold text-white/70">{t("proj.scan")}</figcaption>
+        </figure>
         <p className="text-3xl font-bold text-white/70">
           {t("proj.goTo")}{" "}
           <span className="font-black text-white">{joinUrl.replace(/^https?:\/\//, "")}</span>

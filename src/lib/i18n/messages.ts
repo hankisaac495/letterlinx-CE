@@ -813,6 +813,11 @@ export const MESSAGES = {
   "footer.contact": ["Contact", "Contacto"],
   "footer.edition": ["Classroom Edition", "Edición para el aula"],
   "footer.nav": ["Site information", "Información del sitio"],
+  "proj.qrAlt": [
+    "QR code: scan to open the LetterLinx join page",
+    "Código QR: escanéalo para abrir la página para unirse a LetterLinx",
+  ],
+  "proj.scan": ["Scan to join", "Escanea para unirte"],
   // @append
 } as const satisfies Record<string, readonly [en: string, es: string]>;
 
