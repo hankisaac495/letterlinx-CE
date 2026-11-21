@@ -10,7 +10,7 @@ test.describe("projector readability", () => {
     test(`board letters are at least 6% of screen height at ${viewport.width}×${viewport.height}`, async ({
       browser,
     }) => {
-      const context = await browser.newContext({ viewport });
+      const context = await browser.newContext({ viewport, storageState: "e2e/access.json" });
       const page = await context.newPage();
       await signIn(page);
       await page

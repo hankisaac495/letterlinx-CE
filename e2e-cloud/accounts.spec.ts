@@ -8,7 +8,7 @@ test("cloud account: sign up, confirm, save a class, see it from another browser
   const supabase = new FakeSupabase(FAKE_SUPABASE_URL);
 
   // --- Computer 1 ---
-  const ctx1 = await browser.newContext();
+  const ctx1 = await browser.newContext({ storageState: "e2e/access.json" });
   await supabase.attach(ctx1);
   const page = await ctx1.newPage();
   await page.goto("/auth/email?mode=signup");
@@ -54,7 +54,7 @@ test("cloud account: sign up, confirm, save a class, see it from another browser
   await page.waitForURL(/\/$/);
 
   // --- Computer 2 (fresh browser) ---
-  const ctx2 = await browser.newContext();
+  const ctx2 = await browser.newContext({ storageState: "e2e/access.json" });
   await supabase.attach(ctx2);
   const page2 = await ctx2.newPage();
   await page2.goto("/auth/email");
@@ -81,7 +81,7 @@ test("cloud account: sign up, confirm, save a class, see it from another browser
 
 test("forgot password sends a reset request", async ({ browser }) => {
   const supabase = new FakeSupabase(FAKE_SUPABASE_URL);
-  const ctx = await browser.newContext();
+  const ctx = await browser.newContext({ storageState: "e2e/access.json" });
   await supabase.attach(ctx);
   const page = await ctx.newPage();
   await page.goto("/auth/email");

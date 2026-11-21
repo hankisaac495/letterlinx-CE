@@ -115,8 +115,9 @@ export function Privacy() {
               <Section title="Cookies and local storage">
                 <p>
                   We use your browser’s local storage only to make the app work: keeping you signed
-                  in, remembering your language and sound settings, and saving your work. We don’t
-                  use advertising or tracking cookies.
+                  in, remembering your language and sound settings, and saving your work. While the
+                  site is a prototype, one cookie remembers that you entered the demo password. We
+                  don’t use advertising or tracking cookies.
                 </p>
               </Section>
               <Section title="Keeping and deleting information">
@@ -245,8 +246,9 @@ export function Privacy() {
               <Section title="Cookies y almacenamiento local">
                 <p>
                   Usamos el almacenamiento local del navegador solo para que la aplicación funcione:
-                  mantener tu sesión, recordar el idioma y el sonido, y guardar tu trabajo. No
-                  usamos cookies de publicidad ni de rastreo.
+                  mantener tu sesión, recordar el idioma y el sonido, y guardar tu trabajo. Mientras
+                  el sitio sea un prototipo, una cookie recuerda que escribiste la contraseña de
+                  demostración. No usamos cookies de publicidad ni de rastreo.
                 </p>
               </Section>
               <Section title="Conservación y eliminación">

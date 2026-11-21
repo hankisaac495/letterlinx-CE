@@ -11,7 +11,7 @@ export const FAKE_SUPABASE_URL = "https://fake-project.supabase.co";
 export default defineConfig({
   testDir: "./e2e-cloud",
   reporter: "list",
-  use: { baseURL: `http://localhost:${PORT}`, trace: "off" },
+  use: { baseURL: `http://localhost:${PORT}`, trace: "off", storageState: "e2e/access.json" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: `NEXT_DIST_DIR=.next-cloud npx next start -p ${PORT}`,

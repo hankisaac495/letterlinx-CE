@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "llce_access",
+      "value": "e75e1f000722624e4dbb58ef8383787f1744bfd68e89cb07bf1a1a28d94c052c",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

@@ -818,6 +818,26 @@ export const MESSAGES = {
     "Código QR: escanéalo para abrir la página para unirse a LetterLinx",
   ],
   "proj.scan": ["Scan to join", "Escanea para unirte"],
+  "gate.title": [
+    "This prototype is password protected",
+    "Este prototipo está protegido con contraseña",
+  ],
+  "gate.lead": [
+    "Enter the demo password to continue.",
+    "Escribe la contraseña de demostración para continuar.",
+  ],
+  "gate.password": ["Password", "Contraseña"],
+  "gate.enter": ["Enter", "Entrar"],
+  "gate.wrong": [
+    "That password isn’t right. Try again.",
+    "Esa contraseña no es correcta. Inténtalo otra vez.",
+  ],
+  "gate.needPrefix": ["Need a password?", "¿Necesitas una contraseña?"],
+  "gate.contactLink": ["Contact us", "Contáctanos"],
+  "gate.needSuffix": [
+    "to request a password, or a guided demo.",
+    "para solicitar una contraseña o una demostración guiada.",
+  ],
   // @append
 } as const satisfies Record<string, readonly [en: string, es: string]>;
 

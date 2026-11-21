@@ -26,3 +26,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* Prototype gate: hidden before paint for visitors who already entered the password. */
+html[data-access="1"] [data-site-gate] {
+  display: none;
+}

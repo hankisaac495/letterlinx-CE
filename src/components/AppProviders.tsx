@@ -6,6 +6,7 @@ import { sfx } from "@/lib/audio/sfx";
 import { CloudSync } from "./CloudSync";
 import { LocaleSync } from "./LocaleSync";
 import { SiteFooter } from "./SiteFooter";
+import { SiteGate } from "./SiteGate";
 
 /**
  * App-wide client setup: respect prefers-reduced-motion in every animation,
@@ -21,14 +22,19 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       window.removeEventListener("keydown", unlock);
     };
   }, []);
-  return (
-    <MotionConfig reducedMotion="user">
-      <LocaleSync />
-      <CloudSync />
+  const content = (
+    <>
       {children}
       <Suspense fallback={null}>
         <SiteFooter />
       </Suspense>
+    </>
+  );
+  return (
+    <MotionConfig reducedMotion="user">
+      <LocaleSync />
+      <CloudSync />
+      <SiteGate>{content}</SiteGate>
     </MotionConfig>
   );
 }
